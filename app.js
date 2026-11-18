@@ -137,6 +137,26 @@ function initApp() {
   syncFormWithState();
   updateLivePreview();
   applyLanguage(state.currentLang);
+  setupModalDismissal();
+}
+
+// Setup modal listeners for backdrop click and Escape key
+function setupModalDismissal() {
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeHistoryModal();
+      closeSettingsModal();
+      closeWhatsappModal();
+    }
+  });
+
+  document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        modal.classList.remove('active');
+      }
+    });
+  });
 }
 
 // Populate the preset items dropdown
@@ -238,10 +258,10 @@ function renderItemsEditorTable() {
         <input type="text" value="${escapeHtml(item.description)}" placeholder="Description" oninput="updateItemField(${idx}, 'description', this.value)">
       </td>
       <td>
-        <input type="number" min="1" step="1" value="${item.qty}" oninput="updateItemField(${idx}, 'qty', this.value)">
+        <input type="number" min="0" step="any" value="${item.qty}" oninput="updateItemField(${idx}, 'qty', this.value)">
       </td>
       <td>
-        <input type="number" min="0" step="50" value="${item.unitPrice}" oninput="updateItemField(${idx}, 'unitPrice', this.value)">
+        <input type="number" min="0" step="any" value="${item.unitPrice}" oninput="updateItemField(${idx}, 'unitPrice', this.value)">
       </td>
       <td class="row-total-val" style="text-align:right;">
         ${formatCurrency(item.amount)}
@@ -297,7 +317,7 @@ function addPresetItem(presetIndex) {
 function updateItemField(index, field, value) {
   if (!state.doc.items[index]) return;
   if (field === 'qty') {
-    state.doc.items[index].qty = Math.max(1, parseInt(value, 10) || 1);
+    state.doc.items[index].qty = Math.max(0, parseFloat(value) || 0);
   } else if (field === 'unitPrice') {
     state.doc.items[index].unitPrice = Math.max(0, parseFloat(value) || 0);
   } else {
@@ -924,6 +944,7 @@ function saveSettingsForm() {
   };
 
   persistSettings(newSettings);
+  syncFormWithState();
   updateLivePreview();
   closeSettingsModal();
   showToast(state.currentLang === 'si' ? 'සැකසුම් සුරකින ලදී!' : 'Settings saved!');
@@ -933,6 +954,7 @@ function resetSettingsToDefault() {
   if (confirm(state.currentLang === 'si' ? 'සියලු සැකසුම් මුල් තත්වයට පත් කිරීමට අවශ්‍යද?' : 'Reset settings to defaults?')) {
     persistSettings(DEFAULT_SETTINGS);
     openSettingsModal();
+    syncFormWithState();
     updateLivePreview();
   }
 }
