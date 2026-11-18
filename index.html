@@ -151,6 +151,10 @@
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
               <span>Change Password</span>
             </button>
+            <button type="button" class="user-dropdown-item" id="btn-dropdown-manage-users" onclick="openUserManagementModal()" style="display:none; color:#0284c7;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              <span>Manage Accounts &amp; Permissions</span>
+            </button>
             <div class="user-dropdown-divider"></div>
             <button type="button" class="user-dropdown-item text-danger" onclick="logoutUser()">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
@@ -1983,6 +1987,78 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-outline" onclick="closeChangePasswordModal()">Cancel</button>
         <button type="button" class="btn btn-primary" onclick="saveChangedPassword()">Save Password</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: User Accounts & Role Permissions Management (Admin 1 Only) -->
+  <div class="modal-overlay" id="modal-user-management">
+    <div class="modal-content" style="max-width: 650px;">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0052cc" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <h3 style="margin:0;">User Accounts &amp; Permissions (Admin 1 Control)</h3>
+        </div>
+        <button type="button" class="close-modal-btn" onclick="closeUserManagementModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+          <span style="font-size:12.5px; color:#64748b;">Manage passwords, roles, and feature access for all accounts:</span>
+          <button type="button" class="btn btn-primary btn-sm" onclick="toggleCreateUserForm()">
+            + Create New Account
+          </button>
+        </div>
+
+        <!-- Inline New User Form -->
+        <div id="user-create-form-wrap" style="display:none; background:#f0fdf4; border:1.5px solid #86efac; border-radius:10px; padding:16px; margin-bottom:16px;">
+          <div style="font-weight:800; font-size:13.5px; color:#166534; margin-bottom:10px;">➕ Create New System Account</div>
+          <form onsubmit="handleCreateUserSubmit(event)">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;">
+              <div class="form-group">
+                <label style="font-size:11.5px; font-weight:700;">Username:</label>
+                <input type="text" id="new-user-username" placeholder="e.g. cashier1" required style="width:100%; padding:7px; border:1px solid #cbd5e1; border-radius:6px;">
+              </div>
+              <div class="form-group">
+                <label style="font-size:11.5px; font-weight:700;">Display Name (Receipts/Invoices):</label>
+                <input type="text" id="new-user-display-name" placeholder="e.g. Sunil (Cashier)" required style="width:100%; padding:7px; border:1px solid #cbd5e1; border-radius:6px;">
+              </div>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;">
+              <div class="form-group">
+                <label style="font-size:11.5px; font-weight:700;">Initial Password:</label>
+                <input type="password" id="new-user-password" placeholder="At least 3 characters" required style="width:100%; padding:7px; border:1px solid #cbd5e1; border-radius:6px;">
+              </div>
+              <div class="form-group">
+                <label style="font-size:11.5px; font-weight:700;">Account Role:</label>
+                <select id="new-user-role" style="width:100%; padding:7px; border:1px solid #cbd5e1; border-radius:6px; font-weight:600;">
+                  <option value="admin">Administrator</option>
+                  <option value="staff" selected>Staff Cashier</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="font-size:12px; font-weight:700; margin-bottom:6px; color:#334155;">Grant Permissions:</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:14px; font-size:11.5px;">
+              <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="new-user-perm-cloud"> ☁️ Cloud Database Config</label>
+              <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="new-user-perm-settings"> ⚙️ Business &amp; Bank Profile</label>
+              <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="new-user-perm-delete"> 🗑️ Delete Records &amp; Bills</label>
+              <label style="display:flex; align-items:center; gap:5px;"><input type="checkbox" id="new-user-perm-cogs"> 💰 View Cost Prices &amp; Margins</label>
+            </div>
+
+            <div style="display:flex; gap:8px; justify-content:flex-end;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="toggleCreateUserForm()">Cancel</button>
+              <button type="submit" class="btn btn-success btn-sm">Save &amp; Create Account</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Accounts List Container -->
+        <div id="user-management-list-container">
+          <!-- Dynamically populated by auth.js -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeUserManagementModal()">Close</button>
       </div>
     </div>
   </div>

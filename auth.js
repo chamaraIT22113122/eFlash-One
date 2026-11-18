@@ -1,7 +1,7 @@
 /**
  * RECITAL ELECTRONIC - Secure Multi-Admin Authentication Engine
- * Cryptographic SHA-256 Hashing • Role-Based Access Control • Brute Force Lockout
- * Admin 1 (Chamara - Super Admin) & Admin 2 (Father - Admin)
+ * Cryptographic SHA-256 Hashing • Dynamic Role Permissions • Account Management (Admin 1 Control)
+ * Admin 1 (Chamara - Super Admin) & Admin 2 (Father - Admin) + Custom Accounts
  */
 
 (function () {
@@ -18,7 +18,6 @@
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     } catch (e) {
-      // Fallback for non-crypto contexts
       let hash = 0;
       for (let i = 0; i < plainText.length; i++) {
         hash = ((hash << 5) - hash) + plainText.charCodeAt(i);
@@ -39,7 +38,13 @@
       role: 'super_admin',
       roleLabel: 'Super Administrator',
       avatar: '👨‍💻',
-      permissions: ['all']
+      permissions: {
+        cloud_config: true,
+        system_settings: true,
+        delete_records: true,
+        manage_users: true,
+        view_cogs: true
+      }
     },
     {
       id: 'admin2',
@@ -49,7 +54,13 @@
       role: 'admin',
       roleLabel: 'Administrator',
       avatar: '👨‍💼',
-      permissions: ['pos', 'invoices', 'repairs', 'hire', 'inventory_view', 'print']
+      permissions: {
+        cloud_config: false,
+        system_settings: false,
+        delete_records: false,
+        manage_users: false,
+        view_cogs: false
+      }
     }
   ];
 
@@ -72,20 +83,40 @@
         const saved = localStorage.getItem(AUTH_STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
-          // Auto-upgrade plain text passwords from legacy sessions to SHA-256 hashes
           for (const u of parsed) {
+            // Auto-upgrade legacy plain text passwords to SHA-256
             if (u.password && !u.passwordHash) {
               u.passwordHash = await sha256(u.password);
               delete u.password;
             }
+            // Auto-upgrade permissions to object format
+            if (!u.permissions || Array.isArray(u.permissions)) {
+              if (u.id === 'admin1') {
+                u.permissions = {
+                  cloud_config: true,
+                  system_settings: true,
+                  delete_records: true,
+                  manage_users: true,
+                  view_cogs: true
+                };
+              } else {
+                u.permissions = {
+                  cloud_config: false,
+                  system_settings: false,
+                  delete_records: false,
+                  manage_users: false,
+                  view_cogs: false
+                };
+              }
+            }
           }
           this.users = parsed;
         } else {
-          this.users = DEFAULT_USERS.slice();
+          this.users = JSON.parse(JSON.stringify(DEFAULT_USERS));
           localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(this.users));
         }
       } catch (e) {
-        this.users = DEFAULT_USERS.slice();
+        this.users = JSON.parse(JSON.stringify(DEFAULT_USERS));
       }
     },
 
@@ -100,7 +131,8 @@
             role: u.role,
             roleLabel: u.roleLabel,
             avatar: u.avatar,
-            passwordHash: u.passwordHash
+            passwordHash: u.passwordHash,
+            permissions: u.permissions
           }))
         });
       }
@@ -164,14 +196,13 @@
       if (!u || u.passwordHash !== passHash) {
         this.failedAttempts++;
         if (this.failedAttempts >= 5) {
-          this.lockoutUntil = Date.now() + 30000; // 30 sec lockout
+          this.lockoutUntil = Date.now() + 30000;
           localStorage.setItem(LOCKOUT_KEY, String(this.lockoutUntil));
           return { success: false, message: 'Too many failed attempts. System locked for 30 seconds.' };
         }
         return { success: false, message: 'Invalid username or password.' };
       }
 
-      // Success - reset lockout
       this.failedAttempts = 0;
       localStorage.removeItem(LOCKOUT_KEY);
       this.currentUser = u;
@@ -217,10 +248,8 @@
       const targetUser = this.users.find(u => u.id === targetUserId);
       if (!targetUser) return { success: false, message: 'User not found.' };
 
-      // Admin 1 (Super Admin) can change any password without knowing the old one!
       const isSuperAdmin = caller.id === 'admin1';
       if (!isSuperAdmin) {
-        // Other users must provide their current password
         if (caller.id !== targetUserId) {
           return { success: false, message: 'Permission denied. Only Admin 1 can change other accounts.' };
         }
@@ -239,6 +268,76 @@
       return { success: true, message: `Password for ${targetUser.displayName} updated successfully!` };
     },
 
+    // Admin 1 Control Methods: Create, Delete, Update Permissions
+    createUser: async function (userData) {
+      if (!this.isSuperAdmin()) {
+        return { success: false, message: 'Permission denied. Only Admin 1 can create new accounts.' };
+      }
+
+      const cleanUsername = (userData.username || '').trim().toLowerCase();
+      if (!cleanUsername || cleanUsername.length < 2) {
+        return { success: false, message: 'Username must be at least 2 characters.' };
+      }
+
+      if (this.users.some(u => u.username.toLowerCase() === cleanUsername)) {
+        return { success: false, message: 'Username "' + cleanUsername + '" already exists.' };
+      }
+
+      if (!userData.password || userData.password.length < 3) {
+        return { success: false, message: 'Initial password must be at least 3 characters.' };
+      }
+
+      const passHash = await sha256(userData.password.trim());
+      const newUser = {
+        id: 'usr_' + Date.now(),
+        username: cleanUsername,
+        passwordHash: passHash,
+        displayName: (userData.displayName || cleanUsername).trim(),
+        role: userData.role || 'staff',
+        roleLabel: userData.roleLabel || (userData.role === 'admin' ? 'Administrator' : 'Staff Cashier'),
+        avatar: userData.avatar || (userData.role === 'admin' ? '👨‍💼' : '👤'),
+        permissions: {
+          cloud_config: !!userData.permissions?.cloud_config,
+          system_settings: !!userData.permissions?.system_settings,
+          delete_records: !!userData.permissions?.delete_records,
+          manage_users: false,
+          view_cogs: !!userData.permissions?.view_cogs
+        }
+      };
+
+      this.users.push(newUser);
+      this.saveUsers();
+      return { success: true, user: newUser };
+    },
+
+    deleteUser: function (userId) {
+      if (!this.isSuperAdmin()) {
+        return { success: false, message: 'Permission denied. Only Admin 1 can delete accounts.' };
+      }
+      if (userId === 'admin1') {
+        return { success: false, message: 'Cannot delete Super Admin account (Admin 1).' };
+      }
+      this.users = this.users.filter(u => u.id !== userId);
+      this.saveUsers();
+      return { success: true };
+    },
+
+    updateUserPermissions: function (userId, permissions) {
+      if (!this.isSuperAdmin()) {
+        return { success: false, message: 'Permission denied. Only Admin 1 can customize permissions.' };
+      }
+      const user = this.users.find(u => u.id === userId);
+      if (!user) return { success: false, message: 'User not found.' };
+      if (user.id === 'admin1') {
+        return { success: false, message: 'Super Admin permissions are permanent and cannot be modified.' };
+      }
+
+      user.permissions = Object.assign(user.permissions || {}, permissions);
+      this.saveUsers();
+      this.applyRoleRestrictions();
+      return { success: true };
+    },
+
     getCurrentUser: function () {
       return this.currentUser || DEFAULT_USERS[0];
     },
@@ -249,28 +348,28 @@
 
     can: function (action) {
       if (this.isSuperAdmin()) return true;
-
-      // Restrictions for Admin 2:
-      switch (action) {
-        case 'cloud_config':
-        case 'system_settings':
-        case 'delete_records':
-        case 'manage_users':
-        case 'view_cogs':
-          return false;
-        default:
-          return true;
+      const user = this.getCurrentUser();
+      if (user && user.permissions && user.permissions[action] !== undefined) {
+        return !!user.permissions[action];
       }
+      return false;
     },
 
     applyRoleRestrictions: function () {
       const user = this.getCurrentUser();
       const isSuper = user.id === 'admin1';
 
-      // 1. Cloud Sync button restrictions
+      // 1. Manage Accounts Dropdown option
+      const manageBtn = document.getElementById('btn-dropdown-manage-users');
+      if (manageBtn) {
+        manageBtn.style.display = isSuper ? 'flex' : 'none';
+      }
+
+      // 2. Cloud Sync button restrictions
       const fbBadge = document.getElementById('firebase-status-badge');
       if (fbBadge) {
-        if (!isSuper) {
+        const canCloud = this.can('cloud_config');
+        if (!canCloud) {
           fbBadge.title = 'Cloud Sync (Active - Managed by Admin 1)';
           fbBadge.onclick = function () {
             alert('Cloud Database settings and credentials can only be configured by Admin 1 (Chamara).');
@@ -283,18 +382,18 @@
         }
       }
 
-      // 2. Settings button behavior
+      // 3. Settings button behavior
       const setBtn = document.querySelector('button[onclick="openSettingsModal()"]');
       if (setBtn) {
-        if (!isSuper) {
+        const canSettings = this.can('system_settings');
+        if (!canSettings) {
           setBtn.title = 'Settings (View-only for Admin 2)';
         } else {
           setBtn.title = 'Business & System Settings (Full Access)';
         }
       }
 
-      // 3. User Badge styling
-      const avatarEl = document.getElementById('header-user-avatar');
+      // 4. User Badge styling
       const badgeBtn = document.getElementById('btn-user-profile');
       if (badgeBtn) {
         if (isSuper) {
@@ -335,7 +434,6 @@
       if (dropNameEl) dropNameEl.textContent = user.displayName || user.username;
       if (dropRoleEl) dropRoleEl.textContent = user.roleLabel || 'Administrator';
 
-      // Update POS Cashier display
       if (window.defaultReceiptConfig) {
         window.defaultReceiptConfig.cashier = user.displayName;
       }
@@ -432,19 +530,16 @@ function openChangePasswordModal() {
   const currentUser = window.authSystem.getCurrentUser();
   const isSuper = window.authSystem.isSuperAdmin();
 
-  // Populate account select dropdown (Super Admin can change either account)
   const selectWrap = document.getElementById('chg-pass-account-select-wrap');
   const selectEl = document.getElementById('chg-pass-target-account');
   const currentPassGroup = document.getElementById('chg-pass-current-group');
 
   if (isSuper && selectWrap && selectEl) {
     selectWrap.style.display = 'block';
-    selectEl.innerHTML = `
-      <option value="admin1">Chamara (Admin 1)</option>
-      <option value="admin2">Father (Admin 2)</option>
-    `;
+    selectEl.innerHTML = window.authSystem.users.map(u => 
+      `<option value="${u.id}">${u.displayName} (${u.username})</option>`
+    ).join('');
     selectEl.value = currentUser.id;
-    // Super admin doesn't need to enter current password
     if (currentPassGroup) currentPassGroup.style.display = 'none';
   } else {
     if (selectWrap) selectWrap.style.display = 'none';
@@ -510,5 +605,191 @@ async function saveChangedPassword() {
   } else {
     alert(res.message);
     closeChangePasswordModal();
+  }
+}
+
+/* =========================================================
+   USER & ROLE PERMISSIONS MANAGEMENT (ADMIN 1 EXCLUSIVE)
+   ========================================================= */
+
+function openUserManagementModal() {
+  const drop = document.getElementById('user-profile-dropdown');
+  if (drop) drop.classList.remove('active');
+
+  if (!window.authSystem || !window.authSystem.isSuperAdmin()) {
+    alert('Access Denied: Only Super Admin (Admin 1 - Chamara) can manage user accounts and permissions.');
+    return;
+  }
+
+  const modal = document.getElementById('modal-user-management');
+  if (!modal) return;
+
+  renderUserManagementList();
+  modal.classList.add('active');
+}
+
+function closeUserManagementModal() {
+  const modal = document.getElementById('modal-user-management');
+  if (modal) modal.classList.remove('active');
+  const form = document.getElementById('user-create-form-wrap');
+  if (form) form.style.display = 'none';
+}
+
+function toggleCreateUserForm() {
+  const form = document.getElementById('user-create-form-wrap');
+  if (!form) return;
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if (form.style.display === 'block') {
+    document.getElementById('new-user-username').value = '';
+    document.getElementById('new-user-display-name').value = '';
+    document.getElementById('new-user-password').value = '';
+    document.getElementById('new-user-perm-cloud').checked = false;
+    document.getElementById('new-user-perm-settings').checked = false;
+    document.getElementById('new-user-perm-delete').checked = false;
+    document.getElementById('new-user-perm-cogs').checked = false;
+    document.getElementById('new-user-username').focus();
+  }
+}
+
+async function handleCreateUserSubmit(event) {
+  if (event) event.preventDefault();
+  const username = document.getElementById('new-user-username').value;
+  const displayName = document.getElementById('new-user-display-name').value;
+  const password = document.getElementById('new-user-password').value;
+  const role = document.getElementById('new-user-role').value;
+  const cloud = document.getElementById('new-user-perm-cloud').checked;
+  const settings = document.getElementById('new-user-perm-settings').checked;
+  const del = document.getElementById('new-user-perm-delete').checked;
+  const cogs = document.getElementById('new-user-perm-cogs').checked;
+
+  const res = await window.authSystem.createUser({
+    username: username,
+    displayName: displayName,
+    password: password,
+    role: role,
+    roleLabel: role === 'admin' ? 'Administrator' : 'Staff Cashier',
+    permissions: {
+      cloud_config: cloud,
+      system_settings: settings,
+      delete_records: del,
+      view_cogs: cogs,
+      manage_users: false
+    }
+  });
+
+  if (!res.success) {
+    alert(res.message);
+  } else {
+    alert(`Account "${displayName}" created successfully!`);
+    toggleCreateUserForm();
+    renderUserManagementList();
+  }
+}
+
+function renderUserManagementList() {
+  const container = document.getElementById('user-management-list-container');
+  if (!container || !window.authSystem) return;
+
+  const users = window.authSystem.users;
+
+  let html = '';
+  users.forEach(u => {
+    const isSuper = u.id === 'admin1';
+    html += `
+      <div class="user-mgmt-row" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:14px; margin-bottom:12px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:26px;">${u.avatar || '👤'}</span>
+            <div>
+              <strong style="font-size:14px; color:#0f172a;">${u.displayName}</strong>
+              <div style="font-size:11.5px; color:#64748b;">Username: <code style="background:#f1f5f9; padding:2px 5px; border-radius:4px; font-weight:700;">${u.username}</code></div>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="badge ${isSuper ? 'badge-primary' : 'badge-secondary'}" style="font-size:11px; padding:3px 8px; border-radius:4px; font-weight:700;">
+              ${isSuper ? '👑 Super Admin' : (u.role === 'admin' ? '🛡️ Admin' : '👤 Staff')}
+            </span>
+            <button type="button" class="btn btn-outline btn-sm" onclick="adminResetUserPassword('${u.id}')" title="Reset Password" style="padding:4px 8px; font-size:11.5px;">
+              🔑 Reset Pass
+            </button>
+            ${!isSuper ? `
+              <button type="button" class="btn btn-outline btn-sm text-danger" onclick="adminDeleteUser('${u.id}', '${u.displayName}')" title="Delete Account" style="padding:4px 8px; font-size:11.5px; border-color:#fecaca;">
+                🗑️ Delete
+              </button>
+            ` : ''}
+          </div>
+        </div>
+
+        <!-- Customizable Permission Toggles -->
+        <div style="background:#f8fafc; border-radius:8px; padding:10px; font-size:12px;">
+          <div style="font-weight:700; color:#334155; margin-bottom:6px;">Custom Permissions:</div>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px, 1fr)); gap:8px;">
+            <label style="display:flex; align-items:center; gap:6px; cursor:${isSuper ? 'not-allowed' : 'pointer'};">
+              <input type="checkbox" ${u.permissions?.cloud_config ? 'checked' : ''} ${isSuper ? 'disabled' : ''} onchange="toggleUserPerm('${u.id}', 'cloud_config', this.checked)">
+              <span>☁️ Cloud Database Config</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; cursor:${isSuper ? 'not-allowed' : 'pointer'};">
+              <input type="checkbox" ${u.permissions?.system_settings ? 'checked' : ''} ${isSuper ? 'disabled' : ''} onchange="toggleUserPerm('${u.id}', 'system_settings', this.checked)">
+              <span>⚙️ Business &amp; Bank Profile</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; cursor:${isSuper ? 'not-allowed' : 'pointer'};">
+              <input type="checkbox" ${u.permissions?.delete_records ? 'checked' : ''} ${isSuper ? 'disabled' : ''} onchange="toggleUserPerm('${u.id}', 'delete_records', this.checked)">
+              <span>🗑️ Delete Records &amp; Bills</span>
+            </label>
+            <label style="display:flex; align-items:center; gap:6px; cursor:${isSuper ? 'not-allowed' : 'pointer'};">
+              <input type="checkbox" ${u.permissions?.view_cogs ? 'checked' : ''} ${isSuper ? 'disabled' : ''} onchange="toggleUserPerm('${u.id}', 'view_cogs', this.checked)">
+              <span>💰 View Cost Prices &amp; Margins</span>
+            </label>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+}
+
+function toggleUserPerm(userId, permKey, isChecked) {
+  const permObj = {};
+  permObj[permKey] = isChecked;
+  const res = window.authSystem.updateUserPermissions(userId, permObj);
+  if (!res.success) {
+    alert(res.message);
+    renderUserManagementList();
+  } else {
+    if (typeof showToast === 'function') {
+      showToast('Permissions updated!');
+    }
+  }
+}
+
+async function adminResetUserPassword(userId) {
+  const user = window.authSystem.users.find(u => u.id === userId);
+  if (!user) return;
+
+  const newPass = prompt(`Enter a new password for "${user.displayName}" (${user.username}):`);
+  if (newPass === null) return;
+  if (!newPass.trim() || newPass.trim().length < 3) {
+    alert('Password must be at least 3 characters.');
+    return;
+  }
+
+  const res = await window.authSystem.changePassword(userId, '', newPass.trim());
+  if (res.success) {
+    alert(`Password for "${user.displayName}" has been updated successfully!`);
+  } else {
+    alert(res.message);
+  }
+}
+
+function adminDeleteUser(userId, displayName) {
+  if (confirm(`Are you sure you want to permanently delete account "${displayName}"? This cannot be undone.`)) {
+    const res = window.authSystem.deleteUser(userId);
+    if (res.success) {
+      alert(`Account "${displayName}" has been deleted.`);
+      renderUserManagementList();
+    } else {
+      alert(res.message);
+    }
   }
 }

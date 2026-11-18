@@ -3844,3 +3844,22 @@ textarea {
   background: #fef2f2;
   color: #dc2626;
 }
+
+
+/* User Management Modal Badges & Cards */
+.badge-primary {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+.badge-secondary {
+  background: #f8fafc;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+.user-mgmt-row {
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.user-mgmt-row:hover {
+  border-color: #94a3b8;
+}
