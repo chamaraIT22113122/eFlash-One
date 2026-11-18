@@ -1,7 +1,7 @@
 /**
  * RECITAL ELECTRONIC - Secure Multi-Admin Authentication Engine
- * Cryptographic SHA-256 Hashing • Dynamic Role Permissions • Account Management (Admin 1 Control)
- * Admin 1 (Chamara - Super Admin) & Admin 2 (Father - Admin) + Custom Accounts
+ * Cryptographic SHA-256 Hashing • Dynamic Role Permissions • Account Management (Main Admin Control)
+ * Main Admin & Co-Admins + Custom Accounts
  */
 
 (function () {
@@ -34,9 +34,9 @@
       id: 'admin1',
       username: 'admin1',
       passwordHash: 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', // '123'
-      displayName: 'Chamara (Admin 1)',
+      displayName: 'Main Admin',
       role: 'super_admin',
-      roleLabel: 'Super Administrator',
+      roleLabel: 'Main Administrator',
       avatar: '👨‍💻',
       permissions: {
         cloud_config: true,
@@ -50,9 +50,9 @@
       id: 'admin2',
       username: 'admin2',
       passwordHash: 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3', // '123'
-      displayName: 'Father (Admin 2)',
+      displayName: 'Co-Admin',
       role: 'admin',
-      roleLabel: 'Administrator',
+      roleLabel: 'Co-Administrator',
       avatar: '👨‍💼',
       permissions: {
         cloud_config: false,
@@ -84,6 +84,15 @@
         if (saved) {
           const parsed = JSON.parse(saved);
           for (const u of parsed) {
+            // Auto-upgrade legacy names
+            if (u.id === 'admin1' && (u.displayName.includes('Chamara') || !u.displayName)) {
+              u.displayName = 'Main Admin';
+              u.roleLabel = 'Main Administrator';
+            }
+            if (u.id === 'admin2' && (u.displayName.includes('Father') || !u.displayName)) {
+              u.displayName = 'Co-Admin';
+              u.roleLabel = 'Co-Administrator';
+            }
             // Auto-upgrade legacy plain text passwords to SHA-256
             if (u.password && !u.passwordHash) {
               u.passwordHash = await sha256(u.password);
@@ -111,6 +120,7 @@
             }
           }
           this.users = parsed;
+          localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(this.users));
         } else {
           this.users = JSON.parse(JSON.stringify(DEFAULT_USERS));
           localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(this.users));
@@ -372,7 +382,7 @@
         if (!canCloud) {
           fbBadge.title = 'Cloud Sync (Active - Managed by Admin 1)';
           fbBadge.onclick = function () {
-            alert('Cloud Database settings and credentials can only be configured by Admin 1 (Chamara).');
+            alert('Cloud Database settings and credentials can only be configured by Main Admin.');
           };
         } else {
           fbBadge.title = 'Firebase Cloud Database & Sync (Click to configure)';
@@ -617,7 +627,7 @@ function openUserManagementModal() {
   if (drop) drop.classList.remove('active');
 
   if (!window.authSystem || !window.authSystem.isSuperAdmin()) {
-    alert('Access Denied: Only Super Admin (Admin 1 - Chamara) can manage user accounts and permissions.');
+    alert('Access Denied: Only Main Admin can manage user accounts and permissions.');
     return;
   }
 

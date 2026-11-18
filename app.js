@@ -1262,7 +1262,7 @@ function loadSavedDoc(id) {
 
 function deleteSavedDoc(id) {
   if (window.authSystem && !window.authSystem.can('delete_records')) {
-    alert('Permission Denied: Only Super Admin (Admin 1 - Chamara) can delete saved documents.');
+    alert('Permission Denied: Only Main Admin can delete saved documents.');
     return;
   }
   if (confirm(state.currentLang === 'si' ? 'මෙම ලේඛනය මකා දැමීමට අවශ්‍ය බව සහතිකද?' : 'Are you sure you want to delete this document?')) {
@@ -1336,7 +1336,7 @@ function closeSettingsModal() {
 
 function saveSettingsForm() {
   if (window.authSystem && !window.authSystem.can('system_settings')) {
-    alert('Permission Denied: System and Business profile settings can only be modified by Super Admin (Admin 1 - Chamara).');
+    alert('Permission Denied: System and Business profile settings can only be modified by Main Admin.');
     return;
   }
   const newSettings = {
@@ -3057,7 +3057,7 @@ function shareRecordToWhatsappPdf(id) {
 
 function deleteHistoryRecord(id) {
   if (window.authSystem && !window.authSystem.can('delete_records')) {
-    alert('Permission Denied: Only Super Admin (Admin 1 - Chamara) can delete permanent records.');
+    alert('Permission Denied: Only Main Admin can delete permanent records.');
     return;
   }
   if (confirm(state.currentLang === 'si' ? 'මෙම ලේඛනය සම්පූර්ණයෙන්ම මකා දැමීමට අවශ්‍ය බව සහතිකද?' : 'Are you sure you want to permanently delete this record?')) {
@@ -3361,7 +3361,7 @@ function openEditStoreItemModal(id) {
 
 function deleteStoreItem(id) {
   if (window.authSystem && !window.authSystem.can('delete_records')) {
-    alert('Permission Denied: Only Super Admin (Admin 1 - Chamara) can delete catalog inventory items.');
+    alert('Permission Denied: Only Main Admin can delete catalog inventory items.');
     return;
   }
   const item = storeCatalog.find(x => x.id === id);
@@ -3397,7 +3397,7 @@ const DEFAULT_REPAIR_JOBS = [
     accessories: 'Power Cable, Rack Ears',
     status: 'Diagnosing',
     estimatedCost: 6500,
-    technician: 'Chamara',
+    technician: 'Lead Tech',
     intakeDate: '2026-11-18',
     createdAt: '2026-11-18T09:30:00.000Z'
   },
@@ -3413,7 +3413,7 @@ const DEFAULT_REPAIR_JOBS = [
     accessories: 'None (Speaker cabinet only)',
     status: 'Ready for Pickup',
     estimatedCost: 4500,
-    technician: 'Chamara',
+    technician: 'Lead Tech',
     intakeDate: '2026-11-17',
     createdAt: '2026-11-17T14:30:00.000Z'
   },
@@ -3705,7 +3705,7 @@ function editJobCard(id) {
 
 function deleteJobCard(id) {
   if (window.authSystem && !window.authSystem.can('delete_records')) {
-    alert('Permission Denied: Only Super Admin (Admin 1 - Chamara) can delete repair job cards.');
+    alert('Permission Denied: Only Main Admin can delete repair job cards.');
     return;
   }
   const job = repairJobs.find(j => j.id === id);
@@ -4223,7 +4223,7 @@ function editHireBooking(id) {
 
 function deleteHireBooking(id) {
   if (window.authSystem && !window.authSystem.can('delete_records')) {
-    alert('Permission Denied: Only Super Admin (Admin 1 - Chamara) can delete event bookings.');
+    alert('Permission Denied: Only Main Admin can delete event bookings.');
     return;
   }
   const booking = hireBookings.find(b => b.id === id);
