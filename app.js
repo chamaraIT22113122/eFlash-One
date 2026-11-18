@@ -542,12 +542,6 @@ function updateLivePreview() {
     balanceRow.style.display = 'none';
   }
 
-  // 8. Amount in Words
-  const wordsEn = window.numberToEnglishWords(grandTotal);
-  const wordsSi = window.numberToSinhalaWords(grandTotal);
-  document.getElementById('pv-words-en').textContent = wordsEn;
-  document.getElementById('pv-words-si').textContent = wordsSi;
-
   // 9. Payment Details
   document.getElementById('pv-bank-name').textContent = state.doc.payment.bankName || state.settings.bankName;
   document.getElementById('pv-acc-name').textContent = state.doc.payment.accountName || state.settings.accountName;
@@ -609,7 +603,6 @@ function updatePreviewLabelsByPrintLang() {
   document.getElementById('lbl-pv-advance').textContent = isSi ? 'ගෙවූ අත්තිකාරම්:' : 'Advance Paid:';
   document.getElementById('lbl-pv-balance').textContent = isSi ? 'ඉතිරි ගෙවීම:' : 'BALANCE DUE:';
 
-  document.getElementById('lbl-pv-words').textContent = isSi ? 'මුදල අකුරින්:' : 'Amount in Words:';
   document.getElementById('lbl-pv-terms').textContent = isBi ? 'TERMS & CONDITIONS / කොන්දේසි සහ වගකීම්:' : (isSi ? 'කොන්දේසි සහ වගකීම්:' : 'TERMS & CONDITIONS:');
   document.getElementById('lbl-pv-cust-sign').textContent = isSi ? 'පාරිභෝගික අත්සන' : 'Customer Signature';
   document.getElementById('lbl-pv-auth-sign').textContent = isSi ? 'බලයලත් අත්සන' : 'Authorized Signature';
