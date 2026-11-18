@@ -40,20 +40,6 @@
       <h2 class="login-title">RECITAL ELECTRONIC</h2>
       <p class="login-subtitle">POS &amp; Business Terminal • Multi-Admin Login</p>
 
-      <!-- Quick Profile Picker -->
-      <div class="login-quick-profiles">
-        <div class="login-quick-pill selected" data-user="admin1" onclick="quickSelectUserLogin('admin1')">
-          <div class="login-quick-avatar">👨‍💻</div>
-          <div class="login-quick-name">Chamara</div>
-          <div class="login-quick-tag">Admin 1</div>
-        </div>
-        <div class="login-quick-pill" data-user="admin2" onclick="quickSelectUserLogin('admin2')">
-          <div class="login-quick-avatar">👨‍💼</div>
-          <div class="login-quick-name">Father</div>
-          <div class="login-quick-tag">Admin 2</div>
-        </div>
-      </div>
-
       <!-- Error box -->
       <div class="login-error-box" id="login-error-msg"></div>
 
@@ -62,7 +48,7 @@
         <div class="login-form-group">
           <label for="login-input-username">Username:</label>
           <div class="login-input-wrap">
-            <input type="text" id="login-input-username" class="login-input" value="admin1" autocomplete="username" required>
+            <input type="text" id="login-input-username" class="login-input" placeholder="Enter username (admin1 / admin2)" autocomplete="username" required>
           </div>
         </div>
 
