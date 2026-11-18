@@ -152,6 +152,12 @@ function loadStoreCatalog() {
 
 function persistStoreCatalog(cat) {
   localStorage.setItem('recital_store_catalog', JSON.stringify(cat));
+  if (window.firebaseDB && window.firebaseDB.isInitialized && !window.firebaseDB.isSyncing) {
+    cat.forEach(item => {
+      const id = item.code || item.id || ('ITM-' + Date.now());
+      window.firebaseDB.saveItem('inventory', id, item);
+    });
+  }
 }
 
 var storeCatalog = loadStoreCatalog();
@@ -1144,6 +1150,10 @@ function saveCurrentDoc(isSilent) {
     }
 
     localStorage.setItem('recital_docs_history', JSON.stringify(history));
+    if (window.firebaseDB && window.firebaseDB.isInitialized && !window.firebaseDB.isSyncing) {
+      const docId = state.doc.number || state.doc.id || ('DOC-' + Date.now());
+      window.firebaseDB.saveItem('invoices', docId, state.doc);
+    }
     if (!isSilent) {
       showToast(state.currentLang === 'si' ? 'ලේඛනය සාර්ථකව සුරකින ලදී!' : 'Document saved successfully!');
     }
@@ -1255,6 +1265,10 @@ function deleteSavedDoc(id) {
     let history = getSavedDocsHistory();
     history = history.filter(d => d.id !== id);
     localStorage.setItem('recital_docs_history', JSON.stringify(history));
+    if (window.firebaseDB && window.firebaseDB.isInitialized && !window.firebaseDB.isSyncing) {
+      const docId = state.doc.number || state.doc.id || ('DOC-' + Date.now());
+      window.firebaseDB.saveItem('invoices', docId, state.doc);
+    }
     renderHistoryList(document.getElementById('search-history-input').value);
     showToast('Deleted!');
   }
@@ -3035,6 +3049,10 @@ function deleteHistoryRecord(id) {
     let history = getSavedDocsHistory();
     history = history.filter(d => d.id !== id);
     localStorage.setItem('recital_docs_history', JSON.stringify(history));
+    if (window.firebaseDB && window.firebaseDB.isInitialized && !window.firebaseDB.isSyncing) {
+      const docId = state.doc.number || state.doc.id || ('DOC-' + Date.now());
+      window.firebaseDB.saveItem('invoices', docId, state.doc);
+    }
     renderHistoryView();
     updateDashboard();
     showToast(state.currentLang === 'si' ? 'ලේඛනය මකා දමන ලදී!' : 'Record deleted successfully!');
@@ -3410,6 +3428,12 @@ function loadRepairJobs() {
 
 function persistRepairJobs(jobs) {
   localStorage.setItem('recital_job_cards', JSON.stringify(jobs));
+  if (window.firebaseDB && window.firebaseDB.isInitialized && !window.firebaseDB.isSyncing) {
+    jobs.forEach(job => {
+      const id = job.jobId || job.id || ('JOB-' + Date.now());
+      window.firebaseDB.saveItem('repair_jobs', id, job);
+    });
+  }
 }
 
 var repairJobs = loadRepairJobs();
@@ -3951,6 +3975,12 @@ function loadHireBookings() {
 
 function persistHireBookings(b) {
   localStorage.setItem('recital_hire_bookings', JSON.stringify(b));
+  if (window.firebaseDB && window.firebaseDB.isInitialized && !window.firebaseDB.isSyncing) {
+    b.forEach(booking => {
+      const id = booking.bookingId || booking.id || ('HIRE-' + Date.now());
+      window.firebaseDB.saveItem('hire_bookings', id, booking);
+    });
+  }
 }
 
 var hireBookings = loadHireBookings();
@@ -4680,4 +4710,152 @@ function exportInventoryCsv() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   showToast(state.currentLang === 'si' ? 'තොග වාර්තාව (CSV) බාගත විය!' : 'Inventory CSV exported successfully!');
+}
+
+
+/* =========================================================
+   FIREBASE CLOUD DATABASE CONTROLS & UI HANDLERS
+   ========================================================= */
+
+function openFirebaseModal() {
+  const modal = document.getElementById('modal-firebase');
+  if (!modal) return;
+  modal.classList.add('active');
+  updateFirebaseModalUI();
+}
+
+function closeFirebaseModal() {
+  const modal = document.getElementById('modal-firebase');
+  if (modal) modal.classList.remove('active');
+}
+
+function updateFirebaseModalUI() {
+  const textarea = document.getElementById('fb-input-config');
+  const statusEl = document.getElementById('fb-connection-status');
+  const btnUpload = document.getElementById('btn-fb-upload-all');
+  const btnFetch = document.getElementById('btn-fb-fetch-all');
+  const btnDisconnect = document.getElementById('btn-fb-disconnect');
+
+  const cfg = window.firebaseDB ? window.firebaseDB.getConfig() : null;
+  if (cfg && textarea && !textarea.value) {
+    textarea.value = JSON.stringify(cfg, null, 2);
+  }
+
+  const isConnected = window.firebaseDB && window.firebaseDB.isInitialized;
+  if (isConnected) {
+    statusEl.innerHTML = '<span style="color:#059669;">🟢 Connected to Project: <b>' + (cfg && cfg.projectId ? cfg.projectId : 'Active') + '</b></span>';
+    if (btnUpload) btnUpload.style.display = 'inline-flex';
+    if (btnFetch) btnFetch.style.display = 'inline-flex';
+    if (btnDisconnect) btnDisconnect.style.display = 'inline-flex';
+  } else {
+    statusEl.innerHTML = '<span style="color:#64748b;">⚪ Not connected. System is currently running on Local Storage.</span>';
+    if (btnUpload) btnUpload.style.display = 'none';
+    if (btnFetch) btnFetch.style.display = 'none';
+    if (btnDisconnect) btnDisconnect.style.display = 'none';
+  }
+}
+
+async function testAndSaveFirebaseConfig() {
+  const textarea = document.getElementById('fb-input-config');
+  const raw = textarea ? textarea.value.trim() : '';
+  const statusEl = document.getElementById('fb-connection-status');
+  if (!raw) {
+    alert('Please paste your Firebase configuration object.');
+    return;
+  }
+
+  let configObj = null;
+  try {
+    if (raw.startsWith('{')) {
+      try {
+        configObj = JSON.parse(raw);
+      } catch (err) {
+        configObj = (new Function('return ' + raw))();
+      }
+    } else if (raw.includes('firebaseConfig')) {
+      const match = raw.match(/firebaseConfig\s*=\s*({[\s\S]*?});/);
+      if (match) {
+        configObj = (new Function('return ' + match[1]))();
+      }
+    }
+  } catch (e) {
+    alert('Could not parse Firebase configuration: ' + e.message);
+    return;
+  }
+
+  if (!configObj || !configObj.projectId) {
+    alert('Invalid configuration! Make sure it contains "apiKey" and "projectId".');
+    return;
+  }
+
+  statusEl.innerHTML = '<span style="color:#0284c7;">⏳ Connecting to Firebase Firestore...</span>';
+
+  try {
+    const success = await window.firebaseDB.saveConfig(configObj);
+    if (success) {
+      statusEl.innerHTML = '<span style="color:#059669;">✅ Connected successfully to <b>' + configObj.projectId + '</b>!</span>';
+      updateFirebaseModalUI();
+      showToast('Firebase connected successfully!');
+    } else {
+      statusEl.innerHTML = '<span style="color:#dc2626;">❌ Connection failed. Check your Firebase credentials or permissions.</span>';
+    }
+  } catch (err) {
+    statusEl.innerHTML = '<span style="color:#dc2626;">❌ Error: ' + err.message + '</span>';
+  }
+}
+
+async function uploadLocalDataToFirebase() {
+  if (!confirm('This will upload all current local inventory, invoices, repair jobs, and hire bookings to your Firebase Cloud database. Proceed?')) {
+    return;
+  }
+
+  const pBar = document.getElementById('fb-sync-progress-bar');
+  const pFill = document.getElementById('fb-sync-progress-fill');
+  const pText = document.getElementById('fb-sync-status-text');
+
+  if (pBar) pBar.style.display = 'block';
+
+  try {
+    const result = await window.firebaseDB.uploadAllLocalData(function (current, total, detail) {
+      const pct = Math.round((current / total) * 100);
+      if (pFill) pFill.style.width = pct + '%';
+      if (pText) pText.textContent = 'Syncing (' + current + '/' + total + '): ' + detail;
+    });
+
+    if (pText) pText.innerHTML = '<b style="color:#059669;">✅ All ' + result.syncedCount + ' records synced to Firebase Cloud!</b>';
+    showToast('All local data backed up to Cloud!');
+  } catch (err) {
+    if (pText) pText.innerHTML = '<b style="color:#dc2626;">❌ Sync failed: ' + err.message + '</b>';
+  }
+}
+
+async function fetchCloudDataToLocal() {
+  if (!confirm('This will download all records from Firebase Cloud and refresh your screen. Proceed?')) {
+    return;
+  }
+
+  const pText = document.getElementById('fb-sync-status-text');
+  try {
+    if (pText) pText.textContent = 'Downloading from Cloud...';
+    await window.firebaseDB.fetchFromCloud(function (msg) {
+      if (pText) pText.textContent = msg;
+    });
+    if (pText) pText.innerHTML = '<b style="color:#059669;">✅ Local data updated from Cloud!</b>';
+    showToast('Downloaded from Cloud!');
+  } catch (err) {
+    if (pText) pText.innerHTML = '<b style="color:#dc2626;">❌ Fetch failed: ' + err.message + '</b>';
+  }
+}
+
+function disconnectFirebase() {
+  if (!confirm('Are you sure you want to disconnect Firebase? Your app will return to using only browser Local Storage.')) {
+    return;
+  }
+  if (window.firebaseDB) {
+    window.firebaseDB.clearConfig();
+  }
+  const textarea = document.getElementById('fb-input-config');
+  if (textarea) textarea.value = '';
+  updateFirebaseModalUI();
+  showToast('Firebase disconnected.');
 }

@@ -80,6 +80,12 @@
           </svg>
           <span id="ui-btn-settings">Settings</span>
         </button>
+
+        <!-- Firebase Cloud Database Status Badge -->
+        <div class="fb-status-pill fb-status-offline" id="firebase-status-badge" onclick="openFirebaseModal()" title="Firebase Cloud Database & Sync (Click to configure)">
+          <span class="fb-status-dot dot-offline" id="firebase-status-dot"></span>
+          <span id="firebase-status-text">Cloud Sync</span>
+        </div>
       </div>
     </div>
   </header>
@@ -1806,6 +1812,70 @@
     </div>
   </div>
 
+  <!-- MODAL: Firebase Cloud Database & Live Sync -->
+  <div class="modal-overlay" id="modal-firebase">
+    <div class="modal-content" style="max-width: 620px;">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#f59e0b">
+            <path d="M4.6 17.5L8.5 2.8c.1-.4.6-.5.8-.2l3.4 6.2-7.1 8.7zm15.1-4.2L17.3 3.6c-.2-.4-.8-.4-.9 0L14 8.7l5.7 4.6zm-1.8 7.4L3.2 12.3l2.8-3.5 13.9 11.9c-.6.6-1.4.9-2 .9z"/>
+          </svg>
+          <h3 style="margin:0;">Firebase Cloud Database (Free Lifetime)</h3>
+        </div>
+        <button type="button" class="close-modal-btn" onclick="closeFirebaseModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="fb-help-guide">
+          <strong>How to get your Free Lifetime Cloud Database in 2 minutes:</strong>
+          <ol>
+            <li>Go to <a href="https://console.firebase.google.com" target="_blank" style="color:#0284c7; text-decoration:underline;">Firebase Console (console.firebase.google.com)</a> &amp; click <b>Add Project</b> (100% Free Spark plan).</li>
+            <li>In the left sidebar, click <b>Build &gt; Firestore Database &gt; Create Database</b> (choose Test mode).</li>
+            <li>Go to <b>Project Settings (⚙️) &gt; General &gt; Your Apps &gt; Web (&lt;/&gt;)</b>, name your app, and copy the <code>firebaseConfig</code> object.</li>
+            <li>Paste your configuration below and click <b>Connect &amp; Save</b>!</li>
+          </ol>
+        </div>
+
+        <div class="form-group">
+          <label for="fb-input-config" style="font-weight:700;">Paste Firebase Configuration (JSON or JavaScript object):</label>
+          <textarea id="fb-input-config" rows="7" style="font-family:monospace; font-size:12px; width:100%; border:1px solid #cbd5e1; border-radius:6px; padding:8px;">{
+  "apiKey": "AIzaSyDODhT63LysnL0gzYq1rfewiqVAiRGCx5g",
+  "authDomain": "eflashone-dee81.firebaseapp.com",
+  "projectId": "eflashone-dee81",
+  "storageBucket": "eflashone-dee81.firebasestorage.app",
+  "messagingSenderId": "535485201010",
+  "appId": "1:535485201010:web:85a3b8c5175fb98a2c60eb",
+  "measurementId": "G-N5R3H3SHN8"
+}</textarea>
+        </div>
+
+        <div id="fb-connection-status" style="margin-bottom:12px; font-size:13px; font-weight:600;"></div>
+
+        <div class="fb-sync-progress-bar" id="fb-sync-progress-bar">
+          <div class="fb-sync-progress-fill" id="fb-sync-progress-fill"></div>
+        </div>
+        <div id="fb-sync-status-text" style="font-size:12px; color:#64748b; margin-bottom:8px;"></div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px; border-top:1px solid #e2e8f0; padding-top:15px;">
+          <button type="button" class="btn btn-primary" onclick="testAndSaveFirebaseConfig()">
+            <span>Connect &amp; Save</span>
+          </button>
+          <button type="button" class="btn btn-success" id="btn-fb-upload-all" onclick="uploadLocalDataToFirebase()" style="display:none;">
+            <span>☁️ Sync All Local Data to Cloud</span>
+          </button>
+          <button type="button" class="btn btn-outline" id="btn-fb-fetch-all" onclick="fetchCloudDataToLocal()" style="display:none;">
+            <span>⬇️ Restore from Cloud</span>
+          </button>
+          <button type="button" class="btn btn-danger btn-sm" id="btn-fb-disconnect" onclick="disconnectFirebase()" style="display:none; margin-left:auto;">
+            <span>Disconnect</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" onclick="closeFirebaseModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- MODAL 3: WhatsApp Share -->
   <div class="modal-overlay" id="modal-whatsapp">
     <div class="modal-content">
@@ -2093,6 +2163,7 @@
 
   <!-- Scripts -->
   <script src="translations.js"></script>
+  <script src="firebase-db.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
