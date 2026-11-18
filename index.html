@@ -6,10 +6,30 @@
   <title>Recital Electronic - Invoice & Quotation Builder</title>
   <link rel="icon" type="image/png" href="assets/logo.png">
   <link rel="stylesheet" href="style.css">
-  <!-- html2pdf for direct client-side PDF downloads -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- Local & CDN html2pdf for client-side PDF document generation -->
+  <script src="assets/html2pdf.bundle.min.js"></script>
+  <script>
+    if (typeof html2pdf === 'undefined') {
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script>');
+    }
+  </script>
 </head>
 <body>
+
+  <!-- Splash Screen Logo Pulse Animation -->
+  <div class="splash-overlay" id="splash-overlay" onclick="dismissSplash()">
+    <div class="splash-content">
+      <div class="splash-logo-wrap">
+        <div class="sound-wave wave-1"></div>
+        <div class="sound-wave wave-2"></div>
+        <div class="sound-wave wave-3"></div>
+        <img src="assets/logo.png" alt="Recital Electronic" class="splash-logo">
+      </div>
+      <h1 class="splash-title">RECITAL ELECTRONIC</h1>
+      <p class="splash-tagline">Sound Systems & Electronic Solutions • Anuradhapura</p>
+      <div class="splash-spinner"></div>
+    </div>
+  </div>
 
   <!-- App Header / Navbar -->
   <header class="app-header">
@@ -23,7 +43,245 @@
       </div>
 
       <div class="header-controls">
-        <!-- Document Type Selector -->
+        <!-- Language Switch Button -->
+        <button type="button" class="lang-btn" id="btn-lang-toggle" onclick="toggleLanguage()">
+          <span id="lang-indicator">සිංහල</span>
+        </button>
+
+        <!-- Main Action Buttons -->
+        <button type="button" class="btn btn-outline" onclick="createNewDoc()" title="Create New Document">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+          <span id="ui-btn-new">New Document</span>
+        </button>
+
+        <button type="button" class="btn btn-primary" onclick="saveCurrentDoc()" title="Save locally">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+            <polyline points="7 3 7 8 15 8"></polyline>
+          </svg>
+          <span id="ui-btn-save">Save</span>
+        </button>
+
+        <button type="button" class="btn btn-outline" onclick="openHistoryModal()" title="View Saved Documents">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M3 3v5h5M3.05 13A9 9 0 1 0 6 5.3L3 8"></path>
+            <path d="M12 7v5l4 2"></path>
+          </svg>
+          <span id="ui-btn-history">Saved History</span>
+        </button>
+
+        <button type="button" class="btn btn-outline" onclick="openSettingsModal()" title="Settings">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span id="ui-btn-settings">Settings</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Top Navigation Tab Bar -->
+  <nav class="main-nav-bar">
+    <div class="nav-tabs-wrapper">
+      <button type="button" class="nav-tab-btn active" id="tab-nav-dashboard" onclick="switchMainTab('dashboard')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+        <span id="ui-nav-dashboard">Dashboard (මුල් පුවරුව)</span>
+      </button>
+      <button type="button" class="nav-tab-btn" id="tab-nav-generator" onclick="switchMainTab('generator')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <span id="ui-nav-generator">Invoice &amp; Quotation (ඉන්වොයිස් සහ මිල ගණන්)</span>
+      </button>
+      <button type="button" class="nav-tab-btn" id="tab-nav-pos" onclick="switchMainTab('pos')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+        <span id="ui-nav-pos">Store Billing &amp; POS (විකුණුම් සහ සේවා බිල්පත්)</span>
+      </button>
+      <button type="button" class="nav-tab-btn" id="tab-nav-inventory" onclick="switchMainTab('inventory')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        <span id="ui-nav-inventory">Items &amp; Inventory (භාණ්ඩ සහ තොග)</span>
+      </button>
+      <button type="button" class="nav-tab-btn" id="tab-nav-repairs" onclick="switchMainTab('repairs')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+        <span id="ui-nav-repairs">Repair Job Cards (අලුත්වැඩියා)</span>
+      </button>
+      <button type="button" class="nav-tab-btn" id="tab-nav-hire" onclick="switchMainTab('hire')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <span id="ui-nav-hire">Sound Hire &amp; Events (ශබ්ද කුලියට)</span>
+      </button>
+      <button type="button" class="nav-tab-btn" id="tab-nav-reports" onclick="switchMainTab('reports')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <span id="ui-nav-reports">Reports &amp; Z-Close (වාර්තා)</span>
+      </button>
+      <button type="button" class="nav-tab-btn" id="tab-nav-history" onclick="switchMainTab('history')">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span id="ui-nav-history">History &amp; Records (ඉතිහාසය සහ වාර්තා)</span>
+      </button>
+    </div>
+  </nav>
+
+<!-- VIEW 1: Dashboard View (Landing Page) -->
+  <div class="app-view active" id="view-dashboard">
+    <div class="dashboard-container">
+
+      <!-- Greeting Banner -->
+      <div class="dashboard-banner">
+        <div class="dash-welcome-text">
+          <h2 id="dash-ui-welcome">Welcome to Recital Electronic</h2>
+          <p id="dash-ui-subtitle">Business Overview &amp; Quick Billing Terminal</p>
+        </div>
+        <div class="dash-date-badge" id="dash-today-date">
+          Today
+        </div>
+      </div>
+
+      <!-- 4 Stat Metrics Cards -->
+      <div class="dash-metrics-grid">
+        <div class="stat-card">
+          <div class="stat-info">
+            <span id="dash-ui-today-lbl">Today's Revenue</span>
+            <h3 id="dash-stat-today">Rs. 0.00</h3>
+          </div>
+          <div class="stat-icon-wrap sales">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <line x1="12" y1="1" x2="12" y2="23"></line>
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <span id="dash-ui-month-lbl">This Month's Sales</span>
+            <h3 id="dash-stat-month">Rs. 0.00</h3>
+          </div>
+          <div class="stat-icon-wrap month">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="16" y1="2" x2="16" y2="6"></line>
+              <line x1="8" y1="2" x2="8" y2="6"></line>
+              <line x1="3" y1="10" x2="21" y2="10"></line>
+            </svg>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <span id="dash-ui-pending-lbl">Pending Balances to Collect</span>
+            <h3 id="dash-stat-pending">Rs. 0.00</h3>
+          </div>
+          <div class="stat-icon-wrap pending">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-info">
+            <span id="dash-ui-docs-lbl">Total Documents Created</span>
+            <h3 id="dash-stat-docs">0</h3>
+          </div>
+          <div class="stat-icon-wrap docs">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="dash-actions-bar">
+        <h4 id="dash-ui-actions-title">⚡ Quick Actions</h4>
+        <div class="dash-action-buttons">
+          <button type="button" class="btn btn-primary" onclick="openGeneratorWithMode('invoice')">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 5v14M5 12h14"></path>
+            </svg>
+            <span id="dash-btn-new-inv">Create Invoice</span>
+          </button>
+          <button type="button" class="btn btn-outline" onclick="openGeneratorWithMode('quotation')">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path d="M12 5v14M5 12h14"></path>
+            </svg>
+            <span id="dash-btn-new-qt">Create Quotation</span>
+          </button>
+          <button type="button" class="btn btn-success" onclick="switchMainTab('pos')">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="9" cy="21" r="1"></circle>
+              <circle cx="20" cy="21" r="1"></circle>
+              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+            </svg>
+            <span id="dash-btn-quick-bill">Open Store POS</span>
+          </button>
+          <button type="button" class="btn btn-outline" onclick="switchMainTab('inventory')">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path
+                d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+              </path>
+            </svg>
+            <span>Items &amp; Inventory</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2-Column Split: Recent Documents & Pending Balances -->
+      <div class="dashboard-grid-2col">
+
+        <!-- Left: Recent Documents & Receipts -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h4 id="dash-ui-recent-title">Recent Documents &amp; Receipts</h4>
+            <button type="button" class="btn btn-outline btn-sm" onclick="openHistoryModal()" id="dash-ui-view-all">View
+              All Documents</button>
+          </div>
+          <div class="dash-table-wrap">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Doc #</th>
+                  <th>Customer</th>
+                  <th>Amount</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="dash-recent-table-body">
+                <!-- Dynamically populated from saved docs -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right: Pending Debtors & Reminders -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h4 id="dash-ui-pending-box-title" style="color:var(--danger);">⚠️ Pending Payments Alert</h4>
+            <span class="badge badge-danger" id="dash-debtors-count">Dues</span>
+          </div>
+          <div class="debtors-list" id="dash-debtors-list">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- VIEW 2: Full Document Generator & A4 Live Preview -->
+  <div class="app-view" id="view-generator">
+
+    <!-- Generator Mode Toolbar (Inside the Tab as requested) -->
+    <div class="generator-header-bar">
+      <div class="generator-mode-selector">
+        <span class="mode-label" id="ui-lbl-create-mode">Mode:</span>
         <div class="type-toggle-group">
           <button type="button" id="btn-mode-quotation" class="type-toggle-btn quotation-mode active" onclick="setDocType('quotation')">
             <span id="ui-mode-quotation">Quotation (මිල ගණන්)</span>
@@ -32,510 +290,1423 @@
             <span id="ui-mode-invoice">Invoice (ඉන්වොයිසිය)</span>
           </button>
         </div>
+      </div>
 
-        <!-- Language Toggle -->
-        <button type="button" class="lang-btn" id="btn-lang-toggle" onclick="toggleLanguage()">
-          <span id="lang-indicator">සිංහල</span>
+      <div class="generator-quick-actions">
+        <button type="button" class="btn btn-outline btn-sm" onclick="createNewDoc()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+          <span id="ui-btn-new-tab">+ New</span>
         </button>
-
-        <!-- Main Action Buttons -->
-        <button type="button" class="btn btn-outline" onclick="createNewDoc()" title="Create New Document">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
-          <span id="ui-btn-new">New</span>
-        </button>
-
-        <button type="button" class="btn btn-primary" onclick="saveCurrentDoc()" title="Save locally">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-          <span id="ui-btn-save">Save</span>
-        </button>
-
-        <button type="button" class="btn btn-outline" onclick="openHistoryModal()" title="View Saved Documents">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v5h5M3.05 13A9 9 0 1 0 6 5.3L3 8"></path><path d="M12 7v5l4 2"></path></svg>
-          <span id="ui-btn-history">History</span>
-        </button>
-
-        <button type="button" class="btn btn-outline" onclick="openSettingsModal()" title="Settings">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-          <span id="ui-btn-settings">Settings</span>
+        <button type="button" class="btn btn-primary btn-sm" onclick="saveCurrentDoc()">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+          <span id="ui-btn-save-tab">Save</span>
         </button>
       </div>
     </div>
-  </header>
 
-  <!-- Mobile View Toggle Tabs -->
-  <div class="mobile-view-tabs" id="mobile-tabs">
-    <button type="button" class="mobile-tab-btn active" id="tab-btn-editor" onclick="switchMobileTab('editor')">
-      ✏️ <span id="ui-tab-editor">Editor (සංස්කාරකය)</span>
-    </button>
-    <button type="button" class="mobile-tab-btn" id="tab-btn-preview" onclick="switchMobileTab('preview')">
-      📄 <span id="ui-tab-preview">Preview (පෙරදසුන)</span>
-    </button>
-  </div>
+    <!-- Mobile View Toggle Tabs (Hidden on Desktop) -->
+    <div class="mobile-view-tabs" id="mobile-tabs">
+      <button type="button" class="mobile-tab-btn active" id="tab-btn-editor" onclick="switchMobileTab('editor')">
+        ✏️ <span id="ui-tab-editor">Editor (සංස්කාරකය)</span>
+      </button>
+      <button type="button" class="mobile-tab-btn" id="tab-btn-preview" onclick="switchMobileTab('preview')">
+        📄 <span id="ui-tab-preview">Preview (පෙරදසුන)</span>
+      </button>
+    </div>
 
-  <!-- Main Split Wrapper -->
-  <main class="main-wrapper">
-    
-    <!-- LEFT PANEL: Form Editor -->
-    <section class="editor-panel" id="editor-panel">
+    <!-- Main Split Wrapper (Editor on Left, Live Preview on Right) -->
+    <main class="main-wrapper">
 
-      <!-- Card 0: Business & Issuer Information -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            <span id="ui-card-biz-info">Business & Issuer Information</span>
-          </div>
-        </div>
+      <!-- LEFT PANEL: Form Editor -->
+      <section class="editor-panel" id="editor-panel">
 
-        <div class="form-grid">
-          <div class="form-group full-width">
-            <label for="input-biz-name" id="ui-lbl-biz-name">Business Name</label>
-            <input type="text" id="input-biz-name" value="RECITAL ELECTRONIC" oninput="updateBizField('bizName', this.value)">
-          </div>
-
-          <div class="form-group full-width">
-            <label for="input-biz-address" id="ui-lbl-biz-address">Address</label>
-            <input type="text" id="input-biz-address" value="583/2,Dewata Road, Kudhanelumkulama, Galkulama, Anuradhapura" oninput="updateBizField('bizAddress', this.value)">
-          </div>
-
-          <div class="form-group">
-            <label for="input-biz-phone" id="ui-lbl-biz-phone">Phone Number</label>
-            <input type="text" id="input-biz-phone" value="0763366993" oninput="updateBizField('bizPhone', this.value)">
-          </div>
-
-          <div class="form-group">
-            <label for="input-biz-reg" id="ui-lbl-biz-reg">Registration No.</label>
-            <input type="text" id="input-biz-reg" value="NCP/NPE/004141" oninput="updateBizField('bizReg', this.value)">
-          </div>
-
-          <div class="form-group full-width" style="margin-top:4px;">
-            <label class="terms-item" style="font-weight:600; color:#334155;">
-              <input type="checkbox" id="input-show-biz-header" onchange="toggleBizHeaderDisplay(this.checked)">
-              <span id="ui-lbl-show-biz-header">Show Business Header on Document (ලෙටර්හෙඩ් ශීර්ෂයේ පෙන්වන්න)</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 1: Document Details -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-            <span id="ui-card-doc-info">Document Information</span>
-          </div>
-          <button type="button" class="btn btn-outline btn-sm" id="btn-convert-type" onclick="toggleConvertType()">
-            <span id="ui-btn-convert">Convert to Invoice</span>
-          </button>
-        </div>
-
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="input-doc-number" id="ui-lbl-doc-number">Document #</label>
-            <input type="text" id="input-doc-number" placeholder="RE-QT-2026-001" oninput="updateDocField('number', this.value)">
-          </div>
-
-          <div class="form-group">
-            <label for="input-doc-date" id="ui-lbl-doc-date">Date</label>
-            <input type="date" id="input-doc-date" onchange="updateDocField('date', this.value)">
-          </div>
-
-          <div class="form-group">
-            <label for="input-doc-due-date" id="ui-lbl-doc-due-date">Valid Until / Due Date</label>
-            <input type="date" id="input-doc-due-date" onchange="updateDocField('dueDate', this.value)">
-          </div>
-
-          <div class="form-group">
-            <label for="input-doc-status" id="ui-lbl-doc-status">Status</label>
-            <select id="input-doc-status" onchange="updateDocField('status', this.value)">
-              <option value="Draft" id="opt-status-draft">Draft (කටුසටහන)</option>
-              <option value="Sent" id="opt-status-sent">Sent (යවන ලදී)</option>
-              <option value="Paid" id="opt-status-paid">Paid (සම්පූර්ණ ගෙවා ඇත)</option>
-              <option value="Partially Paid" id="opt-status-partial">Partially Paid (කොටසක් ගෙවා ඇත)</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 2: Customer Details -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span id="ui-card-customer">Customer Information (Bill To)</span>
-          </div>
-        </div>
-
-        <div class="form-grid">
-          <div class="form-group full-width">
-            <label for="input-customer-name" id="ui-lbl-cust-name">Customer / Company Name</label>
-            <input type="text" id="input-customer-name" placeholder="Mr. / Mrs. / Company Name" oninput="updateCustomerField('name', this.value)">
-          </div>
-
-          <div class="form-group">
-            <label for="input-customer-phone" id="ui-lbl-cust-phone">Phone / WhatsApp Number</label>
-            <input type="text" id="input-customer-phone" placeholder="077xxxxxxx / 076xxxxxxx" oninput="updateCustomerField('phone', this.value)">
-          </div>
-
-          <div class="form-group">
-            <label for="input-customer-email" id="ui-lbl-cust-email">Email / Optional Note</label>
-            <input type="text" id="input-customer-email" placeholder="email@example.com / Ref" oninput="updateCustomerField('email', this.value)">
-          </div>
-
-          <div class="form-group full-width">
-            <label for="input-customer-address" id="ui-lbl-cust-address">Address</label>
-            <input type="text" id="input-customer-address" placeholder="No, Street, City" oninput="updateCustomerField('address', this.value)">
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 3: Items & Services List -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-            <span id="ui-card-items">Items & Services</span>
-          </div>
-
-          <!-- Quick Presets -->
-          <div class="preset-dropdown-wrap">
-            <select id="select-preset-items" onchange="addPresetItem(this.value); this.value='';">
-              <option value="" id="opt-preset-placeholder">+ Quick Add Common Item...</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Dynamic Items Table -->
-        <div class="items-table-wrapper">
-          <table class="items-editor-table" id="items-editor-table">
-            <thead>
-              <tr>
-                <th id="th-item-no">#</th>
-                <th id="th-item-desc">Item / Service Description</th>
-                <th id="th-item-qty">Qty</th>
-                <th id="th-item-price">Unit Price (Rs.)</th>
-                <th id="th-item-amount">Amount (Rs.)</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody id="items-table-body">
-              <!-- Rendered dynamically -->
-            </tbody>
-          </table>
-        </div>
-
-        <div class="table-action-bar">
-          <button type="button" class="btn btn-primary btn-sm" onclick="addNewItemRow()">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
-            <span id="ui-btn-add-item">+ Add Item Row</span>
-          </button>
-
-          <button type="button" class="btn btn-danger-outline btn-sm" onclick="clearAllItems()">
-            <span id="ui-btn-clear-items">Clear All Items</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Card 4: Financial Summary & Discount -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-            <span id="ui-card-summary">Financial Summary</span>
-          </div>
-        </div>
-
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="input-discount-val" id="ui-lbl-discount">Discount (Rs.)</label>
-            <input type="number" id="input-discount-val" min="0" step="100" value="0" oninput="updateSummaryField('discount', this.value)">
-          </div>
-
-          <div class="form-group">
-            <label for="input-delivery-fee" id="ui-lbl-delivery">Transport / Extra Fee (Rs.)</label>
-            <input type="number" id="input-delivery-fee" min="0" step="100" value="0" oninput="updateSummaryField('delivery', this.value)">
-          </div>
-
-          <div class="form-group">
-            <label for="input-advance-paid" id="ui-lbl-advance">Advance Paid (Rs.)</label>
-            <input type="number" id="input-advance-paid" min="0" step="500" value="0" oninput="updateSummaryField('advance', this.value)">
-          </div>
-
-          <!-- Summary Badges in Editor -->
-          <div class="summary-grid">
-            <div class="summary-row">
-              <span id="ui-sum-subtotal">Subtotal:</span>
-              <span id="ed-subtotal-val">Rs. 0.00</span>
+        <!-- Card 0: Business & Issuer Information -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+              <span id="ui-card-biz-info">Business & Issuer Information</span>
             </div>
-            <div class="summary-row">
-              <span id="ui-sum-total">Grand Total:</span>
-              <span id="ed-grandtotal-val" style="font-weight:700;">Rs. 0.00</span>
+          </div>
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="input-biz-name" id="ui-lbl-biz-name">Business Name</label>
+              <input type="text" id="input-biz-name" value="RECITAL ELECTRONIC" oninput="updateBizField('bizName', this.value)">
             </div>
-            <div class="summary-row balance-due full-width" style="grid-column: 1 / -1;">
-              <span id="ui-sum-balance">Balance Due:</span>
-              <span id="ed-balance-val" style="font-weight:700; color:#b91c1c;">Rs. 0.00</span>
+            <div class="form-group full-width">
+              <label for="input-biz-address" id="ui-lbl-biz-address">Business Address</label>
+              <input type="text" id="input-biz-address" value="583/2,Dewata Road, Kudhanelumkulama, Galkulama, Anuradhapura" oninput="updateBizField('bizAddress', this.value)">
+            </div>
+            <div class="form-group">
+              <label for="input-biz-phone" id="ui-lbl-biz-phone">Phone Number(s)</label>
+              <input type="text" id="input-biz-phone" value="0763366993" oninput="updateBizField('bizPhone', this.value)">
+            </div>
+            <div class="form-group">
+              <label for="input-biz-reg" id="ui-lbl-biz-reg">Business Registration No.</label>
+              <input type="text" id="input-biz-reg" value="NCP/NPE/004141" oninput="updateBizField('bizReg', this.value)">
+            </div>
+            <div class="form-group full-width" style="margin-top:4px;">
+              <label class="terms-item" style="font-weight:600; color:#334155;">
+                <input type="checkbox" id="input-show-biz-header" onchange="toggleBizHeaderDisplay(this.checked)">
+                <span id="ui-lbl-show-biz-header">Show Business Details on Letterhead Header</span>
+              </label>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Card 5: Payment Details, Terms & Presets -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
-            <span id="ui-card-payment-terms">Bank Details & Terms</span>
+        <!-- Card 1: Document Details -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              <span id="ui-card-doc-info">Document Information</span>
+            </div>
+            <button type="button" class="btn btn-outline btn-sm" id="ui-btn-convert" onclick="toggleDocType()">
+              Convert to Invoice
+            </button>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="input-doc-number" id="ui-lbl-doc-number">Document #</label>
+              <input type="text" id="input-doc-number" placeholder="RE-QT-2026-001" oninput="updateDocField('number', this.value)">
+            </div>
+            <div class="form-group">
+              <label for="input-doc-date" id="ui-lbl-doc-date">Date</label>
+              <input type="date" id="input-doc-date" onchange="updateDocField('date', this.value)">
+            </div>
+            <div class="form-group">
+              <label for="input-doc-due-date" id="ui-lbl-doc-due-date">Valid Until / Due Date</label>
+              <input type="date" id="input-doc-due-date" onchange="updateDocField('dueDate', this.value)">
+            </div>
+            <div class="form-group">
+              <label for="input-doc-status" id="ui-lbl-doc-status">Status</label>
+              <select id="input-doc-status" onchange="updateDocField('status', this.value)">
+                <option value="Draft" id="opt-status-draft">Draft (කටුසටහන)</option>
+                <option value="Sent" id="opt-status-sent">Sent (යවන ලදී)</option>
+                <option value="Paid" id="opt-status-paid">Paid (සම්පූර්ණ ගෙවා ඇත)</option>
+                <option value="Partially Paid" id="opt-status-partial">Partially Paid (කොටසක් ගෙවා ඇත)</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="input-bank-name" id="ui-lbl-bank-name">Bank Name</label>
-            <input type="text" id="input-bank-name" value="Bank of Ceylon / Commercial Bank" oninput="updatePaymentField('bankName', this.value)">
+        <!-- Card 2: Customer Details -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <span id="ui-card-customer">Customer Information (Bill To)</span>
+            </div>
           </div>
-
-          <div class="form-group">
-            <label for="input-acc-number" id="ui-lbl-acc-number">Account Number</label>
-            <input type="text" id="input-acc-number" value="1234567890" oninput="updatePaymentField('accountNumber', this.value)">
+          <div class="form-grid">
+            <div class="form-group full-width">
+              <label for="input-customer-name" id="ui-lbl-cust-name">Customer / Company Name</label>
+              <input type="text" id="input-customer-name" placeholder="Mr. / Mrs. / Company Name" oninput="updateCustomerField('name', this.value)">
+            </div>
+            <div class="form-group">
+              <label for="input-customer-phone" id="ui-lbl-cust-phone">Phone / WhatsApp Number</label>
+              <input type="text" id="input-customer-phone" placeholder="077xxxxxxx / 076xxxxxxx" oninput="updateCustomerField('phone', this.value)">
+            </div>
+            <div class="form-group">
+              <label for="input-customer-email" id="ui-lbl-cust-email">Email / Optional Note</label>
+              <input type="text" id="input-customer-email" placeholder="email@example.com / Ref" oninput="updateCustomerField('email', this.value)">
+            </div>
+            <div class="form-group full-width">
+              <label for="input-customer-address" id="ui-lbl-cust-address">Address</label>
+              <input type="text" id="input-customer-address" placeholder="No, Street, City" oninput="updateCustomerField('address', this.value)">
+            </div>
           </div>
+        </div>
 
-          <div class="form-group">
-            <label for="input-acc-name" id="ui-lbl-acc-name">Account Name</label>
-            <input type="text" id="input-acc-name" value="Recital Electronic" oninput="updatePaymentField('accountName', this.value)">
-          </div>
-
-          <div class="form-group">
-            <label for="input-bank-branch" id="ui-lbl-bank-branch">Branch</label>
-            <input type="text" id="input-bank-branch" value="Anuradhapura" oninput="updatePaymentField('branch', this.value)">
-          </div>
-
-          <!-- Preset Terms Selector -->
-          <div class="form-group full-width">
-            <label id="ui-lbl-terms-presets">Quick Terms & Warranty:</label>
-            <div class="terms-checkbox-list" id="terms-checkbox-container">
-              <!-- Dynamically rendered -->
+        <!-- Card 3: Items & Services List -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+              <span id="ui-card-items">Items & Services</span>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <select id="select-preset-items" onchange="addPresetItem(this.value)" style="font-size:12px; max-width:240px;">
+                <option value="">+ Quick Add Preset...</option>
+              </select>
             </div>
           </div>
 
-          <div class="form-group full-width">
-            <label for="input-custom-notes" id="ui-lbl-notes">Additional Notes / Instructions</label>
-            <textarea id="input-custom-notes" rows="2" placeholder="Thank you for your business!" oninput="updateDocField('notes', this.value)"></textarea>
-          </div>
-        </div>
-      </div>
-
-      <!-- Card 6: Print Options -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-            <span id="ui-card-print-options">Print & Letterhead Settings</span>
-          </div>
-        </div>
-
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="select-print-lang" id="ui-lbl-print-lang">Document Print Language</label>
-            <select id="select-print-lang" onchange="setPrintLanguage(this.value)">
-              <option value="bilingual" id="opt-print-bilingual">Bilingual (English + සිංහල)</option>
-              <option value="en" id="opt-print-en">English Only</option>
-              <option value="si" id="opt-print-si">Sinhala Only (සිංහල පමණි)</option>
-            </select>
+          <!-- Dynamic Items Table -->
+          <div class="items-table-wrapper">
+            <table class="items-editor-table" id="items-editor-table">
+              <thead>
+                <tr>
+                  <th id="th-item-no">#</th>
+                  <th id="th-item-desc">Item / Service Description</th>
+                  <th id="th-item-qty">Qty</th>
+                  <th id="th-item-price">Unit Price (Rs.)</th>
+                  <th id="th-item-amount">Amount (Rs.)</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="items-table-body">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
           </div>
 
-          <div class="form-group">
-            <label for="select-bg-mode" id="ui-lbl-bg-mode">Letterhead Background Graphics</label>
-            <select id="select-bg-mode" onchange="toggleBackgroundGraphics(this.value)">
-              <option value="show" id="opt-bg-show">Include Graphics (For Blank Paper / PDF)</option>
-              <option value="hide" id="opt-bg-hide">Hide Graphics (For Pre-Printed Paper)</option>
-            </select>
+          <div class="table-action-bar">
+            <button type="button" class="btn btn-primary btn-sm" onclick="addNewItemRow()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+              <span id="ui-btn-add-item">+ Add Item Row</span>
+            </button>
+            <button type="button" class="btn btn-danger-outline btn-sm" onclick="clearAllItems()">
+              <span id="ui-btn-clear-items">Clear All Items</span>
+            </button>
           </div>
         </div>
-      </div>
 
-    </section>
-
-    <!-- RIGHT PANEL: Live A4 Letterhead Preview -->
-    <section class="preview-panel" id="preview-panel">
-
-      <!-- Action Toolbar -->
-      <div class="preview-toolbar">
-        <div class="preview-badge">
-          <span id="preview-mode-tag">QUOTATION PREVIEW</span>
-        </div>
-        <div class="preview-actions">
-          <button type="button" class="btn btn-primary" onclick="printDocument()" title="Print or Save PDF via browser dialog">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-            <span id="ui-btn-print">Print / PDF</span>
-          </button>
-
-          <button type="button" class="btn btn-outline" onclick="downloadPdfFile()" title="Download PDF directly">
-            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-            <span id="ui-btn-download">Download</span>
-          </button>
-
-          <button type="button" class="btn btn-whatsapp" onclick="openWhatsappModal()" title="Share on WhatsApp">
-            <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.174.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.145.39-.086s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/></svg>
-            <span>WhatsApp</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- A4 Letterhead Printable Container -->
-      <div class="a4-page-container" id="invoice-preview">
-        
-        <!-- Decorative Ribbon Background Graphics -->
-        <div class="a4-background-layer" id="a4-bg-layer"></div>
-
-        <!-- Foreground Content -->
-        <div class="a4-content">
-          
-          <!-- Top Letterhead Row -->
-          <div class="letterhead-header">
-            <!-- Logo -->
-            <div class="letterhead-logo-wrap">
-              <img src="assets/logo.png" alt="Recital Electronic Logo" class="letterhead-logo" id="prev-logo">
+        <!-- Card 4: Financial Summary & Discount -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              <span id="ui-card-summary">Financial Summary</span>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="input-discount-val" id="ui-lbl-discount">Discount (Rs.)</label>
+              <input type="number" id="input-discount-val" min="0" step="100" value="0" oninput="updateSummaryField('discount', this.value)">
+            </div>
+            <div class="form-group">
+              <label for="input-delivery-fee" id="ui-lbl-delivery">Transport / Extra Fee (Rs.)</label>
+              <input type="number" id="input-delivery-fee" min="0" step="100" value="0" oninput="updateSummaryField('delivery', this.value)">
+            </div>
+            <div class="form-group">
+              <label for="input-advance-paid" id="ui-lbl-advance">Advance Paid (Rs.)</label>
+              <input type="number" id="input-advance-paid" min="0" step="500" value="0" oninput="updateSummaryField('advance', this.value)">
             </div>
 
-            <!-- Business Information (Collapsible / Toggleable) -->
-            <div class="letterhead-company-info">
-              <div id="prev-biz-header-block" style="display:none;">
-                <h2 class="company-title" id="prev-biz-name">RECITAL ELECTRONIC</h2>
-                <div class="company-details-text">
-                  <p id="prev-biz-address">583/2,Dewata Road, Kudhanelumkulama, Galkulama, Anuradhapura</p>
-                  <p id="prev-biz-phone">0763366993</p>
-                  <p class="reg-no" id="prev-biz-reg">NCP/NPE/004141</p>
-                  <p class="date-line"><span id="lbl-prev-date">Date :</span> <span id="prev-doc-date">18 Nov, 2026</span></p>
+            <!-- Summary Badges in Editor -->
+            <div class="summary-grid full-width" style="grid-column: 1 / -1;">
+              <div class="summary-row">
+                <span id="ui-sum-subtotal">Subtotal:</span>
+                <span id="ed-subtotal-val">Rs. 0.00</span>
+              </div>
+              <div class="summary-row">
+                <span id="ui-sum-total">Grand Total:</span>
+                <span id="ed-grandtotal-val" style="font-weight:700;">Rs. 0.00</span>
+              </div>
+              <div class="summary-row balance-due" style="grid-column: 1 / -1;">
+                <span id="ui-sum-balance">Balance Due:</span>
+                <span id="ed-balance-val" style="font-weight:700; color:#b91c1c;">Rs. 0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 5: Payment Details, Terms & Presets -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+              <span id="ui-card-payment-terms">Bank Details & Terms</span>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="input-bank-name" id="ui-lbl-bank-name">Bank Name</label>
+              <input type="text" id="input-bank-name" value="Bank of Ceylon / Commercial Bank" oninput="updatePaymentField('bankName', this.value)">
+            </div>
+            <div class="form-group">
+              <label for="input-acc-number" id="ui-lbl-acc-number">Account Number</label>
+              <input type="text" id="input-acc-number" value="1234567890" oninput="updatePaymentField('accountNumber', this.value)">
+            </div>
+            <div class="form-group">
+              <label for="input-acc-name" id="ui-lbl-acc-name">Account Name</label>
+              <input type="text" id="input-acc-name" value="Recital Electronic" oninput="updatePaymentField('accountName', this.value)">
+            </div>
+            <div class="form-group">
+              <label for="input-bank-branch" id="ui-lbl-bank-branch">Branch</label>
+              <input type="text" id="input-bank-branch" value="Anuradhapura" oninput="updatePaymentField('branch', this.value)">
+            </div>
+
+            <!-- Preset Terms Selector -->
+            <div class="form-group full-width">
+              <label id="ui-lbl-terms-presets">Quick Terms & Warranty:</label>
+              <div class="terms-checkbox-list" id="terms-checkbox-container">
+                <!-- Dynamically rendered -->
+              </div>
+            </div>
+
+            <div class="form-group full-width">
+              <label for="input-custom-notes" id="ui-lbl-notes">Additional Notes / Instructions</label>
+              <textarea id="input-custom-notes" rows="2" placeholder="Thank you for your business!" oninput="updateDocField('notes', this.value)"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card 6: Print Options -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+              <span id="ui-card-print-options">Print & Letterhead Settings</span>
+            </div>
+          </div>
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="select-print-lang" id="ui-lbl-print-lang">Document Print Language</label>
+              <select id="select-print-lang" onchange="setPrintLanguage(this.value)">
+                <option value="bilingual" id="opt-print-bilingual">Bilingual (English + සිංහල)</option>
+                <option value="en" id="opt-print-en">English Only</option>
+                <option value="si" id="opt-print-si">Sinhala Only (සිංහල පමණි)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="select-bg-mode" id="ui-lbl-bg-mode">Letterhead Background Graphics</label>
+              <select id="select-bg-mode" onchange="toggleBackgroundGraphics(this.value)">
+                <option value="show" id="opt-bg-show">Include Graphics (For Blank Paper / PDF)</option>
+                <option value="hide" id="opt-bg-hide">Hide Graphics (For Pre-Printed Paper)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- RIGHT PANEL: Live A4 Letterhead Preview -->
+      <section class="preview-panel" id="preview-panel">
+
+        <!-- Action Toolbar -->
+        <div class="preview-toolbar">
+          <div class="preview-badge">
+            <span id="preview-mode-tag">QUOTATION PREVIEW</span>
+          </div>
+          <div class="preview-actions">
+            <button type="button" class="btn btn-primary" onclick="printDocument()" title="Print or Save PDF via browser dialog">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              <span id="ui-btn-print">Print / Save PDF</span>
+            </button>
+
+            <button type="button" class="btn btn-outline" onclick="downloadPdfFile()" title="Download PDF directly">
+              <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              <span id="ui-btn-download">Download PDF</span>
+            </button>
+
+            <button type="button" class="btn btn-whatsapp" onclick="openWhatsappModal()" title="Share on WhatsApp">
+              <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.174.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.145.39-.086s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z" />
+              </svg>
+              <span>WhatsApp</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- A4 Letterhead Printable Container -->
+        <div class="a4-page-container" id="invoice-preview">
+
+          <!-- Decorative Ribbon Background Graphics -->
+          <div class="a4-background-layer" id="a4-bg-layer"></div>
+
+          <!-- Foreground Content -->
+          <div class="a4-content">
+
+            <!-- Top Letterhead Row -->
+            <div class="letterhead-header">
+              <!-- Logo -->
+              <div class="letterhead-logo-wrap">
+                <img src="assets/logo.png" alt="Recital Electronic Logo" class="letterhead-logo" id="prev-logo">
+              </div>
+
+              <!-- Business Information (Collapsible / Toggleable) & Big Title -->
+              <div class="letterhead-company-info">
+                <div id="prev-biz-header-block" style="display:none;">
+                  <h2 class="company-title" id="prev-biz-name">RECITAL ELECTRONIC</h2>
+                  <div class="company-details-text">
+                    <p id="prev-biz-address">583/2,Dewata Road, Kudhanelumkulama, Galkulama, Anuradhapura</p>
+                    <p>Phone: <span id="prev-biz-phone">0763366993</span> | Reg No: <span class="reg-no" id="prev-biz-reg">NCP/NPE/004141</span></p>
+                    <p class="date-line"><span id="lbl-prev-date">Date :</span> <span id="prev-doc-date">18 Nov, 2026</span></p>
+                  </div>
+                </div>
+
+                <!-- Big Title: QUOTATION / INVOICE -->
+                <div class="doc-heading-title quotation" id="prev-heading-title">QUOTATION</div>
+              </div>
+            </div><!-- /letterhead-header -->
+
+            <!-- Customer & Meta Section -->
+            <div class="doc-info-section">
+              <div class="customer-box">
+                <h4 id="lbl-prev-bill-to">CUSTOMER DETAILS / බිල්පත ලබන්නා</h4>
+                <div class="cust-name" id="prev-cust-name">Walk-in Customer</div>
+                <div id="prev-cust-phone" style="color:#475569; font-weight:600; font-size:11px; margin-top:2px;"></div>
+                <div id="prev-cust-address" style="color:#64748b; font-size:10.5px;"></div>
+              </div>
+
+              <div class="meta-box">
+                <h4 id="lbl-prev-doc-details">DOCUMENT DETAILS / ලේඛන තොරතුරු</h4>
+                <div class="meta-row">
+                  <span id="lbl-prev-date-meta">Date:</span>
+                  <span id="prev-doc-date-meta">18 Nov, 2026</span>
+                </div>
+                <div class="meta-row">
+                  <span id="lbl-prev-no">Number:</span>
+                  <span id="prev-doc-number">RE-QT-2026-001</span>
+                </div>
+                <div class="meta-row" id="prev-due-row">
+                  <span id="lbl-prev-validity">Valid Until:</span>
+                  <span id="prev-doc-due">02 Dec, 2026</span>
+                </div>
+                <div class="meta-row">
+                  <span id="lbl-prev-status">Status:</span>
+                  <span id="prev-doc-status" style="color:var(--primary); font-weight:700;">Draft</span>
+                </div>
+              </div>
+            </div><!-- /doc-info-section -->
+
+            <!-- Printable Items Table -->
+            <table class="preview-table">
+              <thead>
+                <tr>
+                  <th class="th-num" id="pv-th-no">#</th>
+                  <th class="th-desc" id="pv-th-desc">DESCRIPTION / විස්තරය</th>
+                  <th class="th-num" id="pv-th-qty">QTY</th>
+                  <th class="th-price" id="pv-th-price">UNIT PRICE (RS.)</th>
+                  <th class="th-total" id="pv-th-amount">AMOUNT (RS.)</th>
+                </tr>
+              </thead>
+              <tbody id="preview-table-body">
+                <!-- Rendered dynamically -->
+              </tbody>
+            </table>
+
+            <!-- Bottom Summary & Bank Details Grid -->
+            <div class="preview-bottom-grid">
+
+              <!-- Bank & Payment Info Box -->
+              <div class="preview-payment-info" id="prev-payment-box">
+                <h5 id="lbl-pv-bank">BANK PAYMENT DETAILS / බැංකු විස්තර</h5>
+                <p><strong>Bank:</strong> <span id="pv-bank-name">Bank of Ceylon</span></p>
+                <p><strong>Account Name:</strong> <span id="pv-acc-name">Recital Electronic</span></p>
+                <p><strong>Account No:</strong> <span id="pv-acc-number">1234567890</span></p>
+                <p><strong>Branch:</strong> <span id="pv-branch">Anuradhapura</span></p>
+              </div>
+
+              <!-- Totals Column -->
+              <div class="preview-totals-box">
+                <div class="total-line">
+                  <span id="lbl-pv-subtotal">Subtotal:</span>
+                  <span id="pv-subtotal-val">Rs. 0.00</span>
+                </div>
+                <div class="total-line" id="pv-discount-row" style="display:none;">
+                  <span id="lbl-pv-discount">Discount:</span>
+                  <span id="pv-discount-val">- Rs. 0.00</span>
+                </div>
+                <div class="total-line" id="pv-delivery-row" style="display:none;">
+                  <span id="lbl-pv-delivery">Transport / Extra:</span>
+                  <span id="pv-delivery-val">+ Rs. 0.00</span>
+                </div>
+                <div class="total-line grand-total">
+                  <span id="lbl-pv-total">GRAND TOTAL:</span>
+                  <span id="pv-grandtotal-val">Rs. 0.00</span>
+                </div>
+                <div class="total-line" id="pv-advance-row" style="display:none;">
+                  <span id="lbl-pv-advance">Advance Paid:</span>
+                  <span id="pv-advance-val">Rs. 0.00</span>
+                </div>
+                <div class="total-line due-balance" id="pv-balance-row" style="display:none;">
+                  <span id="lbl-pv-balance">BALANCE DUE:</span>
+                  <span id="pv-balance-val">Rs. 0.00</span>
                 </div>
               </div>
 
-              <!-- Big Title: QUOTATION / INVOICE -->
-              <div class="doc-heading-title quotation" id="prev-heading-title">QUOTATION</div>
+            </div><!-- /preview-bottom-grid -->
+
+            <!-- Terms & Warranty Notes -->
+            <div class="preview-terms-box" id="prev-terms-box">
+              <h6 id="lbl-pv-terms">TERMS & CONDITIONS / කොන්දේසි සහ වගකීම්:</h6>
+              <ol id="pv-terms-list">
+                <li>3 Months Warranty for electronic repairs.</li>
+                <li>50% Advance payment required upon order confirmation.</li>
+              </ol>
+              <div id="pv-custom-notes" style="margin-top:4px; font-style:italic;"></div>
+            </div>
+
+            <!-- Signatures Section -->
+            <div class="signatures-row">
+              <div class="signature-box">
+                <div class="signature-line"></div>
+                <div class="signature-title" id="lbl-pv-cust-sign">Customer Signature</div>
+                <div style="font-size:9px; color:#94a3b8;">පාරිභෝගික අත්සන</div>
+              </div>
+
+              <div class="signature-box">
+                <div class="signature-line"></div>
+                <div class="signature-title" id="lbl-pv-auth-sign">Authorized Signature</div>
+                <div style="font-size:9px; color:#94a3b8;">RECITAL ELECTRONIC</div>
+              </div>
+            </div>
+
+          </div><!-- /a4-content -->
+
+        </div><!-- /a4-page-container -->
+
+      </section>
+
+    </main>
+  </div>
+
+<!-- VIEW 3: Store Billing & POS (Services & Items Selling Separately & Both) -->
+  <div class="app-view" id="view-pos">
+    <div class="pos-wrapper">
+
+      <!-- Left: Catalog & Filters -->
+      <div class="pos-catalog-panel">
+
+        <!-- Filter Pills Bar -->
+        <div class="pos-filter-bar">
+          <div class="pos-filter-pills">
+            <button type="button" class="filter-pill active" id="pos-pill-all" onclick="filterPosCatalog('all')">
+              <span>🔵</span> <span id="pos-ui-filter-all">Both (Services + Items / දෙකම)</span>
+            </button>
+            <button type="button" class="filter-pill pill-services" id="pos-pill-services"
+              onclick="filterPosCatalog('service')">
+              <span>🟢</span> <span id="pos-ui-filter-services">Services Only (සේවා පමණි)</span>
+            </button>
+            <button type="button" class="filter-pill pill-items" id="pos-pill-items" onclick="filterPosCatalog('item')">
+              <span>🟠</span> <span id="pos-ui-filter-items">Items Selling Only (භාණ්ඩ පමණි)</span>
+            </button>
+          </div>
+
+          <div class="pos-search-bar-row">
+            <input type="text" class="pos-search-input" id="pos-search-input"
+              placeholder="Search by item, service, cable, repair..." oninput="searchPosCatalog(this.value)">
+            <button type="button" class="btn btn-outline" onclick="openAddProductModal()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+              <span id="pos-ui-add-btn">+ Add Item / Service</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Manual Service Entry Card (Ad-hoc repairs & labor) -->
+        <div class="pos-manual-service-card">
+          <div class="manual-service-header">
+            <div>
+              <strong id="pos-ui-manual-title">⚡ Quick Manual Service Entry</strong>
+              <p id="pos-ui-manual-sub">Add custom repairs, hire packages or labor charges directly to current bill</p>
+            </div>
+            <span class="badge badge-service">Service / සේවාව</span>
+          </div>
+          <div class="manual-service-inputs">
+            <input type="text" id="pos-manual-desc"
+              placeholder="Service / Repair Description (e.g. Amplifier IC Replacement / DJ Hire)..."
+              onkeydown="if(event.key==='Enter') addManualServiceToPos()">
+            <input type="number" id="pos-manual-price" placeholder="Fee (Rs.)" min="0" step="50"
+              onkeydown="if(event.key==='Enter') addManualServiceToPos()">
+            <button type="button" class="btn btn-primary" onclick="addManualServiceToPos()">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+              <span id="pos-ui-add-manual-btn">+ Add to Bill</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Product Grid -->
+        <div class="pos-grid" id="pos-catalog-grid">
+          <!-- Dynamically populated product cards -->
+        </div>
+
+      </div>
+
+      <!-- Right: POS Current Bill Cart -->
+      <div class="pos-cart-panel">
+        <div class="pos-cart-header">
+          <h3 id="pos-ui-cart-title">🛒 Current Bill (වත්මන් බිල්පත)</h3>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="resetPosForNewSale()" style="font-weight:600; font-size:12px;" title="Finalize sale & start fresh">+ New Sale</button>
+            <button type="button" class="btn btn-danger-outline btn-sm" onclick="clearPosCart()" title="Clear bill">Clear</button>
+          </div>
+        </div>
+
+        <!-- Customer quick input -->
+        <div
+          style="padding:12px 16px; border-bottom:1px solid var(--border-color); display:flex; flex-direction:column; gap:8px;">
+          <input type="text" id="pos-cust-name" placeholder="Customer Name (පාරිභෝගික නම)" style="font-size:12.5px;">
+          <input type="text" id="pos-cust-phone" placeholder="Phone / WhatsApp (දුරකථන අංකය)" style="font-size:12.5px;">
+        </div>
+
+        <!-- Cart Items List -->
+        <div class="pos-cart-items-list" id="pos-cart-items-list">
+          <!-- Dynamically populated cart rows -->
+        </div>
+
+        <!-- Cart Summary & Actions -->
+        <div class="pos-cart-summary">
+          <div class="summary-row">
+            <span>Subtotal:</span>
+            <strong id="pos-cart-subtotal">Rs. 0.00</strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Discount (Rs.):</span>
+            <input type="number" id="pos-cart-discount" value="0" min="0" style="width:100px; text-align:right;"
+              oninput="updatePosCartCalculations()">
+          </div>
+
+          <div class="summary-row"
+            style="font-size:16px; border-top:1px dashed var(--border-color); padding-top:6px; color:#0f172a;">
+            <strong>Total Payable:</strong>
+            <strong id="pos-cart-total" style="color:var(--primary);">Rs. 0.00</strong>
+          </div>
+
+          <div class="summary-row">
+            <span>Cash Paid (Rs.):</span>
+            <input type="number" id="pos-cart-paid" value="0" min="0"
+              style="width:110px; text-align:right; font-weight:700; font-size:14px;" oninput="updatePosCartCalculations()">
+          </div>
+
+          <!-- Quick Cash Denominations (Fast 1-click cash fill for cashier) -->
+          <div class="pos-cash-shortcuts">
+            <span class="cash-shortcuts-lbl">Quick Cash:</span>
+            <button type="button" class="cash-pill cash-pill-exact" onclick="setPosExactCash()" title="Pay exact bill total">Exact</button>
+            <button type="button" class="cash-pill" onclick="addPosCash(500)">+500</button>
+            <button type="button" class="cash-pill" onclick="addPosCash(1000)">+1,000</button>
+            <button type="button" class="cash-pill" onclick="addPosCash(5000)">+5,000</button>
+            <button type="button" class="cash-pill cash-pill-clear" onclick="clearPosCash()">Clear</button>
+          </div>
+
+          <div class="summary-row" style="font-size:14px; margin-top:2px;">
+            <span id="pos-cart-change-label">Change / Balance Due:</span>
+            <strong id="pos-cart-change">Rs. 0.00</strong>
+          </div>
+
+          <!-- Checkout & Print Buttons -->
+          <div class="pos-checkout-btn-group">
+            <!-- 1. BIG PRIMARY BUTTON FIRST: Print Quick Receipt -->
+            <button type="button" class="btn btn-receipt-huge" id="btn-print-pos-receipt" onclick="openPosReceiptModal()">
+              <div class="receipt-btn-icon-wrap">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                  <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                  <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>
+              </div>
+              <div class="receipt-btn-text-wrap">
+                <span class="receipt-btn-main-title" id="pos-ui-btn-receipt">Print Quick Receipt</span>
+                <span class="receipt-btn-sub-title">ක්ෂණික රිසිට්පත මුද්‍රණය • 80mm / 58mm Thermal</span>
+              </div>
+            </button>
+
+            <!-- 2. SECONDARY ACTIONS ROW -->
+            <div class="pos-secondary-actions-row">
+              <button type="button" class="btn btn-outline btn-sm flex-1" onclick="convertPosToInvoice('invoice')">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14 2 14 8 20 8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                </svg>
+                <span id="pos-ui-btn-invoice">Convert to Invoice</span>
+              </button>
+
+              <button type="button" class="btn btn-outline btn-sm flex-1" onclick="convertPosToInvoice('quotation')">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                </svg>
+                <span id="pos-ui-btn-qt">Convert to Quotation</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+<!-- VIEW 4: Items & Inventory Management -->
+  <div class="app-view" id="view-inventory">
+    <div class="inventory-container">
+
+      <!-- Inventory Banner & Add Button -->
+      <div class="inventory-banner">
+        <div>
+          <h2 id="inv-ui-title">Items &amp; Services Inventory Catalog</h2>
+          <p id="inv-ui-subtitle">Manage your sound equipment, sales items, and repair service charges</p>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="openAddProductModal()">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path d="M12 5v14M5 12h14"></path>
+          </svg>
+          <span id="inv-ui-add-btn">+ Add Item / Service</span>
+        </button>
+      </div>
+
+      <!-- Quick Metrics Strip -->
+      <div class="inv-metrics-strip">
+        <div class="inv-metric-badge">
+          <span class="metric-icon">📦</span>
+          <div>
+            <span class="metric-lbl" id="inv-ui-total-items-lbl">Total Products in Stock</span>
+            <strong class="metric-val" id="inv-stat-items">0</strong>
+          </div>
+        </div>
+        <div class="inv-metric-badge">
+          <span class="metric-icon">🔧</span>
+          <div>
+            <span class="metric-lbl" id="inv-ui-total-services-lbl">Total Services Offered</span>
+            <strong class="metric-val" id="inv-stat-services">0</strong>
+          </div>
+        </div>
+        <div class="inv-metric-badge warning">
+          <span class="metric-icon">⚠️</span>
+          <div>
+            <span class="metric-lbl" id="inv-ui-low-stock-lbl">Low Stock Alerts</span>
+            <strong class="metric-val" id="inv-stat-low-stock">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search & Filters -->
+      <div class="inv-controls-card">
+        <div class="inv-search-wrap">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="inv-search-input" placeholder="Find any item, part, cable or service by name..."
+            oninput="onInventorySearch(this.value)">
+        </div>
+
+        <div class="inv-filter-pills">
+          <button type="button" class="filter-pill active" id="inv-pill-all" onclick="filterInventoryCategory('all')">
+            <span>🔵</span> <span id="inv-pill-all-lbl">All (සියල්ල)</span>
+          </button>
+          <button type="button" class="filter-pill pill-services" id="inv-pill-services"
+            onclick="filterInventoryCategory('service')">
+            <span>🟢</span> <span id="inv-pill-srv-lbl">Services Only (සේවා)</span>
+          </button>
+          <button type="button" class="filter-pill pill-items" id="inv-pill-items"
+            onclick="filterInventoryCategory('item')">
+            <span>🟠</span> <span id="inv-pill-itm-lbl">Products Only (භාණ්ඩ)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Inventory Table -->
+      <div class="inv-table-wrapper">
+        <table class="inventory-table">
+          <thead>
+            <tr>
+              <th id="inv-th-type">Type</th>
+              <th id="inv-th-name">Item / Service Name</th>
+              <th id="inv-th-price">Price (Rs.)</th>
+              <th id="inv-th-stock">Stock Qty</th>
+              <th style="text-align:center;" id="inv-th-actions">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-table-body">
+            <!-- Dynamically populated rows -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- VIEW 5: History & Records Management (Find, Fix/Edit, Re-Print, WhatsApp PDF) -->
+  <div class="app-view" id="view-history">
+    <div class="history-view-container">
+
+      <!-- View Header with Counters -->
+      <div class="history-header-card">
+        <div class="history-title-wrap">
+          <div class="history-icon-badge">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          </div>
+          <div>
+            <h2 id="hist-ui-main-title">All Issued Documents &amp; Receipts History</h2>
+            <p id="hist-ui-main-subtitle">Search, find, edit/fix errors, re-print, and share any issued bill as PDF to WhatsApp</p>
+          </div>
+        </div>
+
+        <!-- 5 Summary Metric Pills -->
+        <div class="history-metrics-row">
+          <div class="hist-metric-card total-metric">
+            <span class="metric-lbl" id="hist-lbl-total-docs">Total Records</span>
+            <strong class="metric-val" id="hist-val-total-docs">0</strong>
+          </div>
+          <div class="hist-metric-card invoice-metric">
+            <span class="metric-lbl" id="hist-lbl-invoices">Invoices</span>
+            <strong class="metric-val" id="hist-val-invoices">0</strong>
+          </div>
+          <div class="hist-metric-card quotation-metric">
+            <span class="metric-lbl" id="hist-lbl-quotations">Quotations</span>
+            <strong class="metric-val" id="hist-val-quotations">0</strong>
+          </div>
+          <div class="hist-metric-card receipt-metric">
+            <span class="metric-lbl" id="hist-lbl-receipts">Thermal Receipts</span>
+            <strong class="metric-val" id="hist-val-receipts">0</strong>
+          </div>
+          <div class="hist-metric-card revenue-metric">
+            <span class="metric-lbl" id="hist-lbl-total-rev">Total Billed</span>
+            <strong class="metric-val" id="hist-val-total-rev">Rs. 0.00</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter & Search Toolbar -->
+      <div class="history-control-toolbar">
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:12px;">
+          <!-- Filter Pills: Type -->
+          <div class="history-filter-pills">
+            <button type="button" class="hist-pill-btn active" id="hist-pill-all" onclick="setHistoryTabFilter('all')">
+              <span id="hist-pill-lbl-all">All Records</span>
+            </button>
+            <button type="button" class="hist-pill-btn" id="hist-pill-invoice" onclick="setHistoryTabFilter('invoice')">
+              <span id="hist-pill-lbl-inv">Invoices</span>
+            </button>
+            <button type="button" class="hist-pill-btn" id="hist-pill-quotation" onclick="setHistoryTabFilter('quotation')">
+              <span id="hist-pill-lbl-qt">Quotations</span>
+            </button>
+            <button type="button" class="hist-pill-btn" id="hist-pill-receipt" onclick="setHistoryTabFilter('receipt')">
+              <span id="hist-pill-lbl-rcpt">Thermal Receipts</span>
+            </button>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:8px;">
+            <select id="hist-filter-status" onchange="handleHistoryStatusFilter(this.value)" class="toolbar-select">
+              <option value="all">All Payment Statuses</option>
+              <option value="Paid">Paid / Settled Only</option>
+              <option value="Pending">Pending Dues Only</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:12px; padding-top:8px; border-top:1px solid #f1f5f9;">
+          <div class="history-search-box" style="flex:1; min-width:260px;">
+            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="hist-search-input" placeholder="Search by Doc #, Receipt #, Customer, Phone..." oninput="handleHistorySearch(this.value)">
+            <button type="button" class="btn btn-outline btn-sm" onclick="clearHistorySearch()" style="padding:2px 7px; font-size:11px;">✕</button>
+          </div>
+
+          <!-- Date Filter Controls -->
+          <div class="toolbar-date-group">
+            <label>📅 Date:</label>
+            <select id="hist-date-preset" onchange="handleHistDatePreset(this.value)" class="toolbar-date-select">
+              <option value="all">All Time</option>
+              <option value="today">Today</option>
+              <option value="this_week">This Week</option>
+              <option value="this_month">This Month</option>
+              <option value="custom">Custom Date Range...</option>
+            </select>
+            <div id="hist-custom-date-wrap" class="toolbar-custom-range" style="display:none;">
+              <input type="date" id="hist-date-from" onchange="handleHistoryDateChange()">
+              <span style="color:#94a3b8; font-size:11px;">to</span>
+              <input type="date" id="hist-date-to" onchange="handleHistoryDateChange()">
             </div>
           </div>
 
-          <!-- Customer & Meta Section -->
-          <div class="doc-info-section">
-            <div class="customer-box">
-              <h4 id="lbl-prev-bill-to">CUSTOMER DETAILS / බිල්පත ලබන්නා</h4>
-              <div class="cust-name" id="prev-cust-name">Walk-in Customer</div>
-              <div id="prev-cust-phone" style="color:#475569; font-weight:600;"></div>
-              <div id="prev-cust-address" style="color:#64748b;"></div>
-            </div>
+          <div class="history-export-actions">
+            <button type="button" class="btn btn-outline btn-sm" onclick="exportDataJson()" title="Download JSON Backup">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              <span>Backup Data</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-            <div class="meta-box">
-              <h4 id="lbl-prev-doc-details">DOCUMENT DETAILS / ලේඛන තොරතුරු</h4>
-              <div class="meta-row">
-                <span id="lbl-prev-date-meta">Date:</span>
-                <span id="prev-doc-date-meta">18 Nov, 2026</span>
-              </div>
-              <div class="meta-row">
-                <span id="lbl-prev-no">Number:</span>
-                <span id="prev-doc-number">RE-QT-2026-001</span>
-              </div>
-              <div class="meta-row" id="prev-due-row">
-                <span id="lbl-prev-validity">Valid Until:</span>
-                <span id="prev-doc-due">02 Dec, 2026</span>
-              </div>
-              <div class="meta-row">
-                <span id="lbl-prev-status">Status:</span>
-                <span id="prev-doc-status" style="color:var(--primary); font-weight:700;">Draft</span>
-              </div>
-            </div>
+      <!-- History Records Table -->
+      <div class="history-table-wrapper">
+        <table class="history-table" id="history-main-table">
+          <thead>
+            <tr>
+              <th style="width:110px;" id="hist-th-type">Type</th>
+              <th style="width:170px;" id="hist-th-num">Doc / Receipt #</th>
+              <th style="width:140px;" id="hist-th-datetime">Date &amp; Time</th>
+              <th id="hist-th-customer">Customer &amp; Phone</th>
+              <th style="width:130px; text-align:right;" id="hist-th-amount">Amount (Rs.)</th>
+              <th style="width:120px; text-align:center;" id="hist-th-status">Status</th>
+              <th style="width:280px; text-align:center;" id="hist-th-actions">Actions (ක්‍රියා)</th>
+            </tr>
+          </thead>
+          <tbody id="history-tab-table-body">
+            <!-- Dynamically populated rows -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+<!-- VIEW 6: Repair & Service Job Card System -->
+  <div class="app-view" id="view-repairs">
+    <div class="repairs-view-container">
+
+      <!-- View Header Card -->
+      <div class="history-header-card">
+        <div class="history-title-wrap">
+          <div class="history-icon-badge" style="background:#fef3c7; color:#b45309;">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path></svg>
+          </div>
+          <div>
+            <h2 id="rep-ui-main-title">Repair &amp; Service Job Card System</h2>
+            <p id="rep-ui-main-subtitle">Equipment intake, customer phone search, serial tags, spare parts, and pickup notifications</p>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="openNewJobCardModal()" style="font-weight:700; padding:10px 20px;">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+          <span id="rep-ui-btn-new">New Repair Job Card</span>
+        </button>
+      </div>
+
+      <!-- 4 Live Metric Cards -->
+      <div class="history-metrics-row" style="margin-bottom:18px;">
+        <div class="hist-metric-card total-metric">
+          <span class="metric-lbl" id="rep-lbl-active">Active Repair Jobs</span>
+          <strong class="metric-val" id="rep-val-active">0</strong>
+        </div>
+        <div class="hist-metric-card" style="border-left: 4px solid #f59e0b;">
+          <span class="metric-lbl" id="rep-lbl-parts">Awaiting Parts</span>
+          <strong class="metric-val" id="rep-val-parts" style="color:#d97706;">0</strong>
+        </div>
+        <div class="hist-metric-card" style="border-left: 4px solid #10b981;">
+          <span class="metric-lbl" id="rep-lbl-ready">Ready for Pickup</span>
+          <strong class="metric-val" id="rep-val-ready" style="color:#059669;">0</strong>
+        </div>
+        <div class="hist-metric-card" style="border-left: 4px solid #8b5cf6;">
+          <span class="metric-lbl" id="rep-lbl-completed">Completed &amp; Settled</span>
+          <strong class="metric-val" id="rep-val-completed" style="color:#7c3aed;">0</strong>
+        </div>
+      </div>
+
+      <!-- Search & Filters Toolbar -->
+      <div class="history-control-toolbar">
+        <!-- Row 1: Search Box + Device Filter Dropdown -->
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; width:100%;">
+          <div class="history-search-box" style="flex:1; min-width:280px;">
+            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="rep-search-input" placeholder="Search by Phone, Job ID (#RE-JOB-...), Item Tag / Serial, Model..." oninput="handleRepairsSearch(this.value)">
+            <button type="button" class="btn btn-outline btn-sm" onclick="clearRepairsSearch()" style="padding:2px 7px; font-size:11px;">✕</button>
           </div>
 
-          <!-- Printable Items Table -->
-          <table class="preview-table">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:12px; font-weight:700; color:#64748b;">Equipment:</span>
+            <select id="rep-filter-device" onchange="handleRepairsDeviceFilter(this.value)" class="toolbar-select">
+              <option value="all">All Equipment Types</option>
+              <option value="Power Amplifier">Power Amplifier</option>
+              <option value="Audio Mixer">Audio Mixer</option>
+              <option value="Speaker Box">Speaker Box</option>
+              <option value="Subwoofer">Subwoofer</option>
+              <option value="Microphone">Microphone / Wireless</option>
+              <option value="Electronic PCB">Electronic PCB</option>
+              <option value="Other">Other Equipment</option>
+            </select>
+          </div>
+
+          <!-- Date Filter Controls -->
+          <div class="toolbar-date-group">
+            <label>📅 Date:</label>
+            <select id="rep-date-preset" onchange="handleRepDatePreset(this.value)" class="toolbar-date-select">
+              <option value="all">All Dates</option>
+              <option value="today">Today</option>
+              <option value="this_week">This Week</option>
+              <option value="this_month">This Month</option>
+              <option value="custom">Custom Date Range...</option>
+            </select>
+            <div id="rep-custom-date-wrap" class="toolbar-custom-range" style="display:none;">
+              <input type="date" id="rep-date-from" onchange="handleRepairsDateChange()">
+              <span style="color:#94a3b8; font-size:11px;">to</span>
+              <input type="date" id="rep-date-to" onchange="handleRepairsDateChange()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Status Pills -->
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding-top:6px; border-top:1px solid #f1f5f9;">
+          <span style="font-size:12px; font-weight:700; color:#64748b; margin-right:4px;">Status:</span>
+          <div class="history-filter-pills" id="rep-status-pills">
+            <button type="button" class="hist-pill-btn active" id="rep-pill-all" onclick="setRepairsFilter('all')">All Jobs</button>
+            <button type="button" class="hist-pill-btn" id="rep-pill-received" onclick="setRepairsFilter('Received')">Received</button>
+            <button type="button" class="hist-pill-btn" id="rep-pill-diagnosing" onclick="setRepairsFilter('Diagnosing')">Diagnosing</button>
+            <button type="button" class="hist-pill-btn" id="rep-pill-parts" onclick="setRepairsFilter('Awaiting Parts')">Parts Needed</button>
+            <button type="button" class="hist-pill-btn" id="rep-pill-ready" onclick="setRepairsFilter('Ready for Pickup')">Ready</button>
+            <button type="button" class="hist-pill-btn" id="rep-pill-completed" onclick="setRepairsFilter('Completed')">Completed</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Repairs Table -->
+      <div class="history-table-wrapper">
+        <table class="history-table" id="repairs-main-table">
+          <thead>
+            <tr>
+              <th style="width:190px;">Job ID &amp; Item Tag</th>
+              <th style="width:180px;">Customer &amp; Phone</th>
+              <th>Device &amp; Reported Fault</th>
+              <th style="width:130px;">Intake Date</th>
+              <th style="width:140px; text-align:center;">Repair Status</th>
+              <th style="width:130px; text-align:right;">Est. / Final (Rs.)</th>
+              <th style="width:260px; text-align:center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="repairs-tab-table-body">
+            <!-- Dynamically populated rows -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+<!-- VIEW 7: Sound System Hire & Event Booking Calendar -->
+  <div class="app-view" id="view-hire">
+    <div class="repairs-view-container">
+
+      <!-- View Header Card -->
+      <div class="history-header-card">
+        <div class="history-title-wrap">
+          <div class="history-icon-badge" style="background:#e0f2fe; color:#0284c7;">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </div>
+          <div>
+            <h2 id="hire-ui-main-title">Sound System Hire &amp; Event Bookings</h2>
+            <p id="hire-ui-main-subtitle">Schedule sound packages, stage setups, venue bookings, advances, and gear checklists</p>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" onclick="openNewHireBookingModal()" style="font-weight:700; padding:10px 20px;">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
+          <span id="hire-ui-btn-new">Book Sound Hire / Event</span>
+        </button>
+      </div>
+
+      <!-- 4 Live Metric Cards -->
+      <div class="history-metrics-row" style="margin-bottom:18px;">
+        <div class="hist-metric-card total-metric">
+          <span class="metric-lbl" id="hire-lbl-upcoming">Upcoming Events</span>
+          <strong class="metric-val" id="hire-val-upcoming">0</strong>
+        </div>
+        <div class="hist-metric-card" style="border-left: 4px solid #10b981;">
+          <span class="metric-lbl" id="hire-lbl-advances">Advances Collected</span>
+          <strong class="metric-val" id="hire-val-advances" style="color:#059669;">Rs. 0.00</strong>
+        </div>
+        <div class="hist-metric-card" style="border-left: 4px solid #ef4444;">
+          <span class="metric-lbl" id="hire-lbl-pending">Pending Event Balances</span>
+          <strong class="metric-val" id="hire-val-pending" style="color:#dc2626;">Rs. 0.00</strong>
+        </div>
+        <div class="hist-metric-card" style="border-left: 4px solid #3b82f6;">
+          <span class="metric-lbl" id="hire-lbl-revenue">Total Hire Revenue</span>
+          <strong class="metric-val" id="hire-val-revenue" style="color:#2563eb;">Rs. 0.00</strong>
+        </div>
+      </div>
+
+      <!-- Search & Filters Toolbar -->
+      <div class="history-control-toolbar">
+        <!-- Row 1: Search Box + Event Date Filters -->
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; width:100%;">
+          <div class="history-search-box" style="flex:1; min-width:280px;">
+            <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" id="hire-search-input" placeholder="Search by Customer, Phone, Venue, or Booking #..." oninput="handleHireSearch(this.value)">
+            <button type="button" class="btn btn-outline btn-sm" onclick="clearHireSearch()" style="padding:2px 7px; font-size:11px;">✕</button>
+          </div>
+
+          <!-- Event Date Filter Controls -->
+          <div class="toolbar-date-group">
+            <label>📅 Event Date:</label>
+            <select id="hire-date-preset" onchange="handleHireDatePreset(this.value)" class="toolbar-date-select">
+              <option value="all">All Dates</option>
+              <option value="upcoming">Upcoming Events (ඉදිරි උත්සව)</option>
+              <option value="this_month">This Month (මෙම මස)</option>
+              <option value="past">Past Events (පසුගිය)</option>
+              <option value="custom">Custom Date Range...</option>
+            </select>
+            <div id="hire-custom-date-wrap" class="toolbar-custom-range" style="display:none;">
+              <input type="date" id="hire-date-from" onchange="handleHireDateChange()">
+              <span style="color:#94a3b8; font-size:11px;">to</span>
+              <input type="date" id="hire-date-to" onchange="handleHireDateChange()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Status Pills -->
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; padding-top:6px; border-top:1px solid #f1f5f9;">
+          <span style="font-size:12px; font-weight:700; color:#64748b; margin-right:4px;">Status:</span>
+          <div class="history-filter-pills" id="hire-status-pills">
+            <button type="button" class="hist-pill-btn active" id="hire-pill-all" onclick="setHireFilter('all')">All Bookings</button>
+            <button type="button" class="hist-pill-btn" id="hire-pill-confirmed" onclick="setHireFilter('Confirmed')">Confirmed</button>
+            <button type="button" class="hist-pill-btn" id="hire-pill-dispatched" onclick="setHireFilter('Dispatched')">Gear Dispatched</button>
+            <button type="button" class="hist-pill-btn" id="hire-pill-completed" onclick="setHireFilter('Completed')">Completed</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bookings Table -->
+      <div class="history-table-wrapper">
+        <table class="history-table" id="hire-main-table">
+          <thead>
+            <tr>
+              <th style="width:140px;">Booking #</th>
+              <th style="width:140px;">Event Date</th>
+              <th style="width:180px;">Customer &amp; Phone</th>
+              <th>Sound Package &amp; Venue</th>
+              <th style="width:140px; text-align:right;">Agreed Total</th>
+              <th style="width:130px; text-align:right;">Advance / Due</th>
+              <th style="width:130px; text-align:center;">Status</th>
+              <th style="width:240px; text-align:center;">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="hire-tab-table-body">
+            <!-- Dynamically populated rows -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+<!-- VIEW 8: Reports, COGS & Daily Z-Report -->
+  <div class="app-view" id="view-reports">
+    <div class="repairs-view-container">
+
+      <!-- View Header Card -->
+      <div class="history-header-card">
+        <div class="history-title-wrap">
+          <div class="history-icon-badge" style="background:#f1f5f9; color:#334155;">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+          </div>
+          <div>
+            <h2 id="rep-ui-reports-title">Reports, Profit &amp; Loss &amp; End-of-Day Z-Report</h2>
+            <p id="rep-ui-reports-subtitle">Cash drawer reconciliation, Cost of Goods Sold (COGS), profit margins, and CSV export</p>
+          </div>
+        </div>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button type="button" class="btn btn-success" onclick="openZReportModal()" style="font-weight:700; padding:10px 18px;">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            <span id="rep-ui-btn-zreport">Daily Z-Report Closing</span>
+          </button>
+          <button type="button" class="btn btn-outline" onclick="exportSalesCsv()" style="font-weight:600; padding:10px 14px;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Export Sales (CSV)</span>
+          </button>
+          <button type="button" class="btn btn-outline" onclick="exportInventoryCsv()" style="font-weight:600; padding:10px 14px;">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span>Export Inventory (CSV)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Date Selector for Financials & Z-Report -->
+      <div class="history-control-toolbar" style="margin-bottom:18px; padding:10px 18px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <span style="font-size:13px; font-weight:700; color:#1e293b;">📅 Select Report / Closing Date:</span>
+          <input type="date" id="reports-selected-date" onchange="onReportsDateChange(this.value)" style="padding:6px 12px; border:1px solid #cbd5e1; border-radius:6px; font-size:13px; font-weight:700; color:#0052cc; background:#f8fafc;">
+          <button type="button" class="btn btn-outline btn-sm" onclick="setReportsDateToday()" style="padding:5px 12px; font-size:12px; font-weight:600;">Today</button>
+          <button type="button" class="btn btn-outline btn-sm" onclick="setReportsDateYesterday()" style="padding:5px 12px; font-size:12px; font-weight:600;">Yesterday</button>
+        </div>
+        <div style="font-size:12px; color:#64748b;">
+          Viewing figures for: <strong id="reports-date-display" style="color:#0f172a;">Today</strong>
+        </div>
+      </div>
+
+      <!-- 4 Live Financial Summary Cards -->
+      <div class="history-metrics-row" style="margin-bottom:22px;">
+        <div class="hist-metric-card total-metric">
+          <span class="metric-lbl" id="rep-lbl-gross">Today's Gross Sales</span>
+          <strong class="metric-val" id="rep-val-gross">Rs. 0.00</strong>
+        </div>
+        <div class="hist-metric-card" style="border-left: 4px solid #f59e0b;">
+          <span class="metric-lbl" id="rep-lbl-cogs">Estimated COGS (Cost)</span>
+          <strong class="metric-val" id="rep-val-cogs" style="color:#d97706;">Rs. 0.00</strong>
+        </div>
+        <div class="hist-metric-card" style="border-left: 4px solid #10b981;">
+          <span class="metric-lbl" id="rep-lbl-profit">Estimated Net Profit</span>
+          <strong class="metric-val" id="rep-val-profit" style="color:#059669;">Rs. 0.00</strong>
+        </div>
+        <div class="hist-metric-card" style="border-left: 4px solid #3b82f6;">
+          <span class="metric-lbl" id="rep-lbl-cash">Cash in Drawer (Today)</span>
+          <strong class="metric-val" id="rep-val-cash" style="color:#2563eb;">Rs. 0.00</strong>
+        </div>
+      </div>
+
+      <!-- COGS & Profit Margins Table per Inventory Item -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <h4>📦 Inventory Items - Cost Price, Selling Price &amp; Profit Margins</h4>
+          <span style="font-size:12px; color:#64748b;">Click "Save Cost" to update product cost price (COGS)</span>
+        </div>
+        <div class="dash-table-wrap">
+          <table class="dash-table">
             <thead>
               <tr>
-                <th class="th-num" id="pv-th-no">#</th>
-                <th class="th-desc" id="pv-th-desc">DESCRIPTION / විස්තරය</th>
-                <th class="th-num" id="pv-th-qty">QTY</th>
-                <th class="th-price" id="pv-th-price">UNIT PRICE (RS.)</th>
-                <th class="th-total" id="pv-th-amount">AMOUNT (RS.)</th>
+                <th>Product Name</th>
+                <th style="width:140px;">Cost Price (Rs.)</th>
+                <th style="width:140px;">Selling Price (Rs.)</th>
+                <th style="width:130px;">Margin (Rs.)</th>
+                <th style="width:120px;">Margin (%)</th>
+                <th style="width:110px; text-align:center;">Action</th>
               </tr>
             </thead>
-            <tbody id="preview-table-body">
-              <!-- Rendered dynamically -->
+            <tbody id="cogs-table-body">
+              <!-- Dynamically populated -->
             </tbody>
           </table>
+        </div>
+      </div>
 
-          <!-- Bottom Summary & Bank Details Grid -->
-          <div class="preview-bottom-grid">
-            
-            <!-- Bank & Payment Info Box -->
-            <div class="preview-payment-info" id="prev-payment-box">
-              <h5 id="lbl-pv-bank">BANK PAYMENT DETAILS / බැංකු විස්තර</h5>
-              <p><strong>Bank:</strong> <span id="pv-bank-name">Bank of Ceylon</span></p>
-              <p><strong>Account Name:</strong> <span id="pv-acc-name">Recital Electronic</span></p>
-              <p><strong>Account No:</strong> <span id="pv-acc-number">1234567890</span></p>
-              <p><strong>Branch:</strong> <span id="pv-branch">Anuradhapura</span></p>
+    </div>
+  </div>
+
+<!-- MODAL: Repair Job Card Intake & Edit -->
+  <div class="modal-overlay" id="modal-job-card">
+    <div class="modal-content" style="max-width: 760px;">
+      <div class="modal-header">
+        <h3 id="ui-modal-job-title">🛠️ Equipment Repair Job Card Intake</h3>
+        <button type="button" class="close-modal-btn" onclick="closeJobCardModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-job-card" onsubmit="event.preventDefault(); saveJobCard();" style="display:flex; flex-direction:column; gap:16px;">
+          
+          <!-- Row 1: Job ID & Manual Custom Item Tag ID / Serial -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Job Ticket ID (Auto/Editable)</label>
+              <input type="text" id="job-input-id" required style="font-weight:700; color:#0052cc;">
             </div>
-
-            <!-- Totals Column -->
-            <div class="preview-totals-box">
-              <div class="total-line">
-                <span id="lbl-pv-subtotal">Subtotal:</span>
-                <span id="pv-subtotal-val">Rs. 0.00</span>
-              </div>
-              <div class="total-line" id="pv-discount-row" style="display:none;">
-                <span id="lbl-pv-discount">Discount:</span>
-                <span id="pv-discount-val">- Rs. 0.00</span>
-              </div>
-              <div class="total-line" id="pv-delivery-row" style="display:none;">
-                <span id="lbl-pv-delivery">Transport / Extra:</span>
-                <span id="pv-delivery-val">+ Rs. 0.00</span>
-              </div>
-              <div class="total-line grand-total">
-                <span id="lbl-pv-total">GRAND TOTAL:</span>
-                <span id="pv-grandtotal-val">Rs. 0.00</span>
-              </div>
-              <div class="total-line" id="pv-advance-row" style="display:none;">
-                <span id="lbl-pv-advance">Advance Paid:</span>
-                <span id="pv-advance-val">Rs. 0.00</span>
-              </div>
-              <div class="total-line due-balance" id="pv-balance-row" style="display:none;">
-                <span id="lbl-pv-balance">BALANCE DUE:</span>
-                <span id="pv-balance-val">Rs. 0.00</span>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Terms & Warranty Notes -->
-          <div class="preview-terms-box" id="prev-terms-box">
-            <h6 id="lbl-pv-terms">TERMS & CONDITIONS / කොන්දේසි සහ වගකීම්:</h6>
-            <ol id="pv-terms-list">
-              <li>3 Months Warranty for electronic repairs.</li>
-              <li>50% Advance payment required upon order confirmation.</li>
-            </ol>
-            <div id="pv-custom-notes" style="margin-top:4px; font-style:italic;"></div>
-          </div>
-
-          <!-- Signatures Section -->
-          <div class="signatures-row">
-            <div class="signature-box">
-              <div class="signature-line"></div>
-              <div class="signature-title" id="lbl-pv-cust-sign">Customer Signature</div>
-              <div style="font-size:9px; color:#94a3b8;">පාරිභෝගික අත්සන</div>
-            </div>
-
-            <div class="signature-box">
-              <div class="signature-line"></div>
-              <div class="signature-title" id="lbl-pv-auth-sign">Authorized Signature</div>
-              <div style="font-size:9px; color:#94a3b8;">RECITAL ELECTRONIC</div>
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px; color:#b45309;">
+                🏷️ Paste / Enter Item Serial # or Tag ID
+              </label>
+              <input type="text" id="job-input-item-tag" placeholder="e.g. SN-98214, or paste sticker barcode" style="border-color:#f59e0b; background:#fffbeb; font-weight:600;">
+              <span style="font-size:11px; color:#92400e; margin-top:2px;">You can paste the equipment serial or sticker tag ID to find it quickly later</span>
             </div>
           </div>
 
-        </div><!-- /a4-content -->
+          <!-- Row 2: Customer Name & Phone -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Customer Name (පාරිභෝගික නම)</label>
+              <input type="text" id="job-input-cust-name" required placeholder="e.g. Priyantha Silva">
+            </div>
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Customer Phone / WhatsApp (දුරකථන අංකය)</label>
+              <input type="text" id="job-input-cust-phone" required placeholder="e.g. 0763366993">
+            </div>
+          </div>
 
-      </div><!-- /a4-page-container -->
+          <!-- Row 3: Device Type & Brand / Model -->
+          <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:14px;">
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Device Type (උපකරණ වර්ගය)</label>
+              <input type="text" id="job-input-device-type" list="device-type-suggestions" required placeholder="Type device (e.g. Power Amplifier, Mixer, Speaker...)" style="padding:9px; border-radius:6px; border:1px solid #cbd5e1; font-weight:600; width:100%;">
+              <datalist id="device-type-suggestions">
+                <option value="Power Amplifier"></option>
+                <option value="Audio Mixer"></option>
+                <option value="Speaker Box"></option>
+                <option value="Subwoofer Bass Box"></option>
+                <option value="Microphone / Wireless"></option>
+                <option value="Equalizer / Crossover"></option>
+                <option value="Electronic PCB / Board"></option>
+                <option value="DJ Lighting / Fixture"></option>
+                <option value="Guitar / Keyboard Amp"></option>
+                <option value="LED TV / Display"></option>
+                <option value="Other Electronic Equipment"></option>
+              </datalist>
+            </div>
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Brand &amp; Model (මාදිලිය)</label>
+              <input type="text" id="job-input-brand-model" placeholder="e.g. Yamaha P7000S, JBL EON 15">
+            </div>
+          </div>
 
-    </section>
+          <!-- Row 4: Reported Defect & Accessories -->
+          <div class="form-group">
+            <label style="font-weight:700; font-size:12.5px;">Reported Fault / Issue (පාරිභෝගිකයා සඳහන් කළ දෝෂය)</label>
+            <textarea id="job-input-fault" rows="2" placeholder="e.g. Channel B distorted output, protection light stays red after 5 mins"></textarea>
+          </div>
 
-  </main>
+          <div class="form-group">
+            <label style="font-weight:700; font-size:12.5px;">Accessories Received (භාරගත් අමතර දෑ)</label>
+            <input type="text" id="job-input-accessories" placeholder="e.g. Power cord, Rack ears attached, Original box">
+          </div>
 
-  <!-- MODAL 1: Saved Documents History -->
+          <!-- Row 5: Status, Estimated Cost & Technician -->
+          <div style="display:grid; grid-template-columns: 1.2fr 1fr 1fr; gap:14px;">
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Repair Status (තත්ත්වය)</label>
+              <select id="job-input-status" style="padding:9px; border-radius:6px; border:1px solid #cbd5e1; font-weight:700;">
+                <option value="Received">🔵 Received (භාරගන්නා ලදී)</option>
+                <option value="Diagnosing">🟡 Diagnosing (පරීක්ෂා කරමින්)</option>
+                <option value="Awaiting Parts">🟠 Awaiting Parts (අමතර කොටස්)</option>
+                <option value="Repaired">🟢 Repaired (අලුත්වැඩියාව අවසන්)</option>
+                <option value="Ready for Pickup">✅ Ready for Pickup (භාරදීමට සූදානම්)</option>
+                <option value="Completed">🟣 Completed &amp; Settled (භාරදුන්)</option>
+                <option value="Cancelled">⚪ Cancelled / Unrepairable</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Estimated / Labor Cost (Rs.)</label>
+              <input type="number" id="job-input-est-cost" min="0" step="any" placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Technician Notes</label>
+              <input type="text" id="job-input-technician" placeholder="e.g. Chamara / Bench 01">
+            </div>
+          </div>
+
+          <div class="modal-footer" style="padding:14px 0 0 0; margin-top:8px;">
+            <button type="button" class="btn btn-outline" onclick="closeJobCardModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="font-weight:700; padding:9px 24px;">Save Job Card</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+<!-- MODAL: Printable Job Intake Sticker / Slip -->
+  <div class="modal-overlay" id="modal-job-slip">
+    <div class="modal-content" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 id="ui-modal-job-slip-title">🏷️ Equipment Intake Sticker / Slip</h3>
+        <button type="button" class="close-modal-btn" onclick="closeJobSlipModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="background:#f8fafc; padding:20px 10px;">
+        <div id="job-slip-print-area" style="background:#ffffff; border:1px dashed #cbd5e1; border-radius:8px; padding:18px 14px; font-family:'Courier New', monospace; font-size:11px; color:#000;">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" onclick="closeJobSlipModal()">Close</button>
+        <button type="button" class="btn btn-success" onclick="printJobSlip()" style="font-weight:700;">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          <span>Print Sticker / Slip</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+<!-- MODAL: Sound System Hire Booking -->
+  <div class="modal-overlay" id="modal-hire-booking">
+    <div class="modal-content" style="max-width: 700px;">
+      <div class="modal-header">
+        <h3 id="ui-modal-hire-title">📅 Book Sound System Hire &amp; Event</h3>
+        <button type="button" class="close-modal-btn" onclick="closeHireBookingModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form id="form-hire-booking" onsubmit="event.preventDefault(); saveHireBooking();" style="display:flex; flex-direction:column; gap:16px;">
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Customer Name (පාරිභෝගික නම)</label>
+              <input type="text" id="hire-input-cust-name" required placeholder="e.g. Anuradhapura Youth Club">
+            </div>
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">WhatsApp Phone (දුරකථන අංකය)</label>
+              <input type="text" id="hire-input-cust-phone" required placeholder="e.g. 0763366993">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1.2fr; gap:14px;">
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Event Date (දිනය)</label>
+              <input type="date" id="hire-input-date" required>
+            </div>
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Venue / Location (ස්ථානය)</label>
+              <input type="text" id="hire-input-venue" required placeholder="e.g. Town Hall Ground, Anuradhapura">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1.2fr 1fr; gap:14px;">
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Sound Package (ශබ්ද පැකේජය)</label>
+              <input type="text" id="hire-input-package" list="hire-package-suggestions" required placeholder="Type or select sound package..." style="padding:9px; border-radius:6px; border:1px solid #cbd5e1; font-weight:600; width:100%;">
+              <datalist id="hire-package-suggestions">
+                <option value="Sound System Hire (Standard Package)"></option>
+                <option value="Sound System Hire (Full Stage Setup)"></option>
+                <option value="DJ Setup & Club Lighting Rental"></option>
+                <option value="Live Band Stage Audio Package"></option>
+                <option value="Public Address & Announcements (PA) Setup"></option>
+                <option value="Custom Event Audio Package"></option>
+              </datalist>
+            </div>
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Booking Status</label>
+              <select id="hire-input-status" style="padding:9px; border-radius:6px; border:1px solid #cbd5e1; font-weight:700;">
+                <option value="Confirmed">🟢 Confirmed (තහවුරු කළ)</option>
+                <option value="Dispatched">🟡 Gear Dispatched (ප්‍රවාහනය කළ)</option>
+                <option value="Completed">🟣 Completed &amp; Returned (අවසන්)</option>
+                <option value="Cancelled">⚪ Cancelled</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Agreed Total Amount (Rs.)</label>
+              <input type="number" id="hire-input-total" min="0" step="any" required placeholder="25000">
+            </div>
+            <div class="form-group">
+              <label style="font-weight:700; font-size:12.5px;">Advance Paid (Rs.)</label>
+              <input type="number" id="hire-input-advance" min="0" step="any" placeholder="0">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label style="font-weight:700; font-size:12.5px;">Equipment Checklist &amp; Notes</label>
+            <input type="text" id="hire-input-checklist" placeholder="e.g. 4x Mics, 8ch Mixer, 2x 15-inch tops, 2x Speakon cables, 2x Stands">
+          </div>
+
+          <div class="modal-footer" style="padding:14px 0 0 0; margin-top:8px;">
+            <button type="button" class="btn btn-outline" onclick="closeHireBookingModal()">Cancel</button>
+            <button type="submit" class="btn btn-primary" style="font-weight:700; padding:9px 24px;">Save Booking</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+<!-- MODAL: End-of-Day Daily Cash Closing (Z-Report) -->
+  <div class="modal-overlay" id="modal-z-report">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 id="ui-modal-zreport-title">🧾 End-of-Day Z-Report (Daily Closing)</h3>
+        <button type="button" class="close-modal-btn" onclick="closeZReportModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="background:#f8fafc; padding:20px 12px;">
+        <div id="z-report-print-area" style="background:#ffffff; border:1px dashed #cbd5e1; border-radius:8px; padding:20px 16px; font-family:'Courier New', monospace; font-size:11.5px; color:#000;">
+          <!-- Dynamically populated daily closing summary -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" onclick="closeZReportModal()">Close</button>
+        <button type="button" class="btn btn-success" onclick="printZReport()" style="font-weight:700;">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          <span>Print Z-Report Slip</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+<!-- MODAL 1: Saved Documents History -->
   <div class="modal-overlay" id="modal-history">
     <div class="modal-content">
       <div class="modal-header">
@@ -544,7 +1715,8 @@
       </div>
       <div class="modal-body">
         <div style="display:flex; gap:10px;">
-          <input type="text" id="search-history-input" placeholder="Search by number, customer..." oninput="renderHistoryList(this.value)">
+          <input type="text" id="search-history-input" placeholder="Search by number, customer..."
+            oninput="renderHistoryList(this.value)">
         </div>
 
         <div style="max-height: 380px; overflow-y:auto;">
@@ -567,7 +1739,8 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline btn-sm" onclick="exportDataJson()">Export Backup (JSON)</button>
-        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('file-import-json').click()">Import Backup</button>
+        <button type="button" class="btn btn-outline btn-sm"
+          onclick="document.getElementById('file-import-json').click()">Import Backup</button>
         <input type="file" id="file-import-json" style="display:none;" accept=".json" onchange="importDataJson(event)">
         <button type="button" class="btn btn-outline" onclick="closeHistoryModal()">Close</button>
       </div>
@@ -589,7 +1762,8 @@
           </div>
           <div class="form-group full-width">
             <label for="set-biz-address" id="ui-set-biz-address">Address</label>
-            <input type="text" id="set-biz-address" value="583/2,Dewata Road, Kudhanelumkulama, Galkulama, Anuradhapura">
+            <input type="text" id="set-biz-address"
+              value="583/2,Dewata Road, Kudhanelumkulama, Galkulama, Anuradhapura">
           </div>
           <div class="form-group">
             <label for="set-biz-phone" id="ui-set-biz-phone">Phone Number</label>
@@ -647,12 +1821,269 @@
 
         <div class="form-group">
           <label>Message Preview:</label>
-          <textarea id="wa-message-text" rows="8" readonly style="font-family:monospace; font-size:12px; background:#f8fafc;"></textarea>
+          <textarea id="wa-message-text" rows="8" readonly
+            style="font-family:monospace; font-size:12px; background:#f8fafc;"></textarea>
         </div>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-outline" onclick="copyWhatsappMessage()">Copy Message</button>
-        <button type="button" class="btn btn-whatsapp" onclick="sendWhatsappDirect()">Open in WhatsApp</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="copyWhatsappMessage()">Copy Message</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="downloadPdfFile()">Download PDF</button>
+        <button type="button" class="btn btn-whatsapp" onclick="shareCurrentDocToWhatsappPdf()">
+          <svg width="15" height="15" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.174.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.145.39-.086s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/></svg>
+          <span id="ui-btn-wa-pdf">Send PDF via WhatsApp</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: Add New Store Item / Service -->
+  <div class="modal-overlay" id="modal-add-product">
+  <div class="modal-content" style="max-width: 500px;">
+    <div class="modal-header">
+      <h3 id="ui-modal-add-prod-title">Add Store Item / Service</h3>
+      <button type="button" class="close-modal-btn" onclick="closeAddProductModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full-width">
+          <label for="new-item-type">Type (වර්ගය)</label>
+          <select id="new-item-type" onchange="toggleNewItemStockField(this.value)">
+            <option value="item">Item Selling (විකිණීමේ භාණ්ඩය / අමතර කොටස්)</option>
+            <option value="service">Service (අලුත්වැඩියා හෝ කුලී සේවාව)</option>
+          </select>
+        </div>
+        <div class="form-group full-width">
+          <label for="new-item-name-en">Item / Service Name (English)</label>
+          <input type="text" id="new-item-name-en" placeholder="e.g. Speakon Cable 10m / Amp Repair">
+        </div>
+        <div class="form-group full-width">
+          <label for="new-item-name-si">Item / Service Name (සිංහල)</label>
+          <input type="text" id="new-item-name-si" placeholder="උදා: ස්පීකන් කේබල් / ඇම්ප්ලිෆයර් අලුත්වැඩියාව">
+        </div>
+        <div class="form-group">
+          <label for="new-item-price">Unit Price / Fee (රු.)</label>
+          <input type="number" id="new-item-price" placeholder="0.00" min="0" step="10">
+        </div>
+        <div class="form-group" id="group-new-item-stock">
+          <label for="new-item-stock">Stock Quantity (තොගය)</label>
+          <input type="number" id="new-item-stock" value="10" min="0">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-outline" onclick="closeAddProductModal()">Cancel</button>
+      <button type="button" class="btn btn-primary" onclick="saveNewStoreItem()">Save to Catalog</button>
+    </div>
+  </div>
+</div>
+
+  <!-- MODAL 5: Quick Thermal Cash Receipt Preview & Direct Print -->
+  <div class="modal-overlay" id="modal-pos-receipt">
+    <div class="modal-content receipt-modal-content">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <svg width="22" height="22" fill="none" stroke="#059669" stroke-width="2.2" viewBox="0 0 24 24">
+            <polyline points="6 9 6 2 18 2 18 9"></polyline>
+            <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+            <rect x="6" y="14" width="12" height="8"></rect>
+          </svg>
+          <div>
+            <h3 id="ui-modal-receipt-title" style="margin:0; font-size:16px;">Quick Thermal Cash Receipt</h3>
+            <span style="font-size:11px; color:#64748b;">Thermal POS Slip • රිසිට්පත් පෙරදසුන</span>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
+          <button type="button" class="btn btn-outline btn-sm" id="btn-toggle-rcpt-custom" onclick="toggleReceiptCustomizer()" style="font-weight:600;">
+            ⚙️ Customize Receipt
+          </button>
+          <button type="button" class="close-modal-btn" onclick="closePosReceiptModal()">&times;</button>
+        </div>
+      </div>
+
+      <!-- Receipt Customization Drawer -->
+      <div class="rcpt-customizer-drawer" id="rcpt-customizer-drawer" style="display:none;">
+        <div class="rcpt-customizer-header">
+          <h4 style="margin:0; font-size:13.5px; color:#0f172a;">⚙️ Live Receipt Customizer Settings (රිසිට්පත සකසන්න)</h4>
+          <span style="font-size:11px; color:#64748b;">Changes update the receipt preview instantly</span>
+        </div>
+        <div class="rcpt-customizer-grid">
+          <div class="form-group">
+            <label for="cfg-rcpt-store-name">Shop / Business Name</label>
+            <input type="text" id="cfg-rcpt-store-name" value="RECITAL ELECTRONIC" oninput="liveUpdateReceiptConfig()">
+          </div>
+          <div class="form-group">
+            <label for="cfg-rcpt-tagline">Tagline / Subtitle</label>
+            <input type="text" id="cfg-rcpt-tagline" value="SOUND SYSTEMS &amp; ELECTRONIC SOLUTIONS" oninput="liveUpdateReceiptConfig()">
+          </div>
+          <div class="form-group full-width">
+            <label for="cfg-rcpt-address">Address</label>
+            <input type="text" id="cfg-rcpt-address" value="583/2, Dewata Road, Kudhanelumkulama, Galkulama, Anuradhapura" oninput="liveUpdateReceiptConfig()">
+          </div>
+          <div class="form-group">
+            <label for="cfg-rcpt-phone">Phone Number(s)</label>
+            <input type="text" id="cfg-rcpt-phone" value="0763366993" oninput="liveUpdateReceiptConfig()">
+          </div>
+          <div class="form-group">
+            <label for="cfg-rcpt-reg">Business Reg No.</label>
+            <input type="text" id="cfg-rcpt-reg" value="NCP/NPE/004141" oninput="liveUpdateReceiptConfig()">
+          </div>
+          <div class="form-group">
+            <label for="cfg-rcpt-cashier">Cashier / Counter Label</label>
+            <input type="text" id="cfg-rcpt-cashier" value="Counter 01 / Recital POS" oninput="liveUpdateReceiptConfig()">
+          </div>
+          <div class="form-group">
+            <label for="cfg-rcpt-width">Paper Roll Width</label>
+            <select id="cfg-rcpt-width" onchange="liveUpdateReceiptConfig()">
+              <option value="80mm" selected>80mm Standard Thermal</option>
+              <option value="58mm">58mm Mini Thermal</option>
+            </select>
+          </div>
+          <div class="form-group full-width">
+            <label for="cfg-rcpt-thanks-en">Thank You Note (English)</label>
+            <input type="text" id="cfg-rcpt-thanks-en" value="*** THANK YOU FOR YOUR BUSINESS! ***" oninput="liveUpdateReceiptConfig()">
+          </div>
+          <div class="form-group full-width">
+            <label for="cfg-rcpt-thanks-si">Thank You Note (Sinhala)</label>
+            <input type="text" id="cfg-rcpt-thanks-si" value="ඔබගේ පැමිණීමට සහ විශ්වාසයට ස්තූතියි!" oninput="liveUpdateReceiptConfig()">
+          </div>
+          <div class="form-group full-width">
+            <label for="cfg-rcpt-terms-1">Policy / Warranty Line 1</label>
+            <input type="text" id="cfg-rcpt-terms-1" value="Exchangeable within 7 days with original receipt." oninput="liveUpdateReceiptConfig()">
+          </div>
+          <div class="form-group full-width">
+            <label for="cfg-rcpt-terms-2">Policy / Warranty Line 2</label>
+            <input type="text" id="cfg-rcpt-terms-2" value="Electronic &amp; sound repairs carry service warranty." oninput="liveUpdateReceiptConfig()">
+          </div>
+          <div class="form-group full-width" style="display:flex; gap:16px; flex-wrap:wrap; margin-top:2px;">
+            <label class="terms-item" style="font-size:12px; font-weight:600;"><input type="checkbox" id="cfg-rcpt-show-logo" checked onchange="liveUpdateReceiptConfig()"> Show Logo</label>
+            <label class="terms-item" style="font-size:12px; font-weight:600;"><input type="checkbox" id="cfg-rcpt-show-barcode" checked onchange="liveUpdateReceiptConfig()"> Show Barcode</label>
+            <label class="terms-item" style="font-size:12px; font-weight:600;"><input type="checkbox" id="cfg-rcpt-show-sinhala" checked onchange="liveUpdateReceiptConfig()"> Show Sinhala Text</label>
+            <label class="terms-item" style="font-size:12px; font-weight:600;"><input type="checkbox" id="cfg-rcpt-show-terms" checked onchange="liveUpdateReceiptConfig()"> Show Warranty Terms</label>
+          </div>
+          <div class="form-group full-width" style="display:flex; justify-content:space-between; margin-top:6px;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="resetReceiptConfigDefaults()">Reset Defaults</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="saveReceiptConfigPermanent()">Save as Permanent Default</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-body receipt-modal-body">
+        <!-- Thermal Paper Container -->
+        <div class="receipt-paper-wrap" id="rcpt-paper-wrapper">
+          <div class="thermal-receipt" id="pos-receipt-print-area">
+            <!-- Header with Logo -->
+            <div class="rcpt-header">
+              <div class="rcpt-logo-wrap" id="rcpt-wrap-logo">
+                <img src="assets/logo.png" alt="Recital Electronic Logo" class="rcpt-logo" id="rcpt-logo-img">
+              </div>
+              <h2 class="rcpt-title" id="rcpt-disp-title">RECITAL ELECTRONIC</h2>
+              <p class="rcpt-tagline" id="rcpt-disp-tagline">SOUND SYSTEMS &amp; ELECTRONIC SOLUTIONS</p>
+              <p class="rcpt-address" id="rcpt-disp-address">583/2, Dewata Road, Kudhanelumkulama,<br>Galkulama, Anuradhapura</p>
+              <p class="rcpt-contact" id="rcpt-disp-contact">Tel: <strong>0763366993</strong> • Reg: NCP/NPE/004141</p>
+            </div>
+
+            <div class="rcpt-divider"></div>
+
+            <!-- Metadata -->
+            <div class="rcpt-meta">
+              <div class="rcpt-meta-row">
+                <span>RECEIPT NO:</span>
+                <strong id="rcpt-meta-number">RE-RCP-20261118-001</strong>
+              </div>
+              <div class="rcpt-meta-row">
+                <span>DATE / TIME:</span>
+                <span id="rcpt-meta-datetime">18/11/2026 01:25 PM</span>
+              </div>
+              <div class="rcpt-meta-row">
+                <span>CUSTOMER:</span>
+                <strong id="rcpt-meta-customer">Walk-in Customer</strong>
+              </div>
+              <div class="rcpt-meta-row" id="rcpt-phone-row" style="display:none;">
+                <span>PHONE:</span>
+                <span id="rcpt-meta-phone">-</span>
+              </div>
+              <div class="rcpt-meta-row" id="rcpt-cashier-row">
+                <span>CASHIER:</span>
+                <span id="rcpt-disp-cashier">Counter 01 / Recital POS</span>
+              </div>
+            </div>
+
+            <div class="rcpt-divider"></div>
+
+            <!-- Items Columns -->
+            <div class="rcpt-items-head">
+              <span class="rcpt-col-desc">ITEM / SERVICE</span>
+              <span class="rcpt-col-qty">QTY</span>
+              <span class="rcpt-col-price">PRICE</span>
+              <span class="rcpt-col-amt">AMOUNT</span>
+            </div>
+            <div class="rcpt-divider-dotted"></div>
+            <div class="rcpt-items-list" id="rcpt-items-container">
+              <!-- Dynamically rendered items -->
+            </div>
+
+            <div class="rcpt-divider-dotted"></div>
+
+            <!-- Financial Totals -->
+            <div class="rcpt-totals">
+              <div class="rcpt-total-row">
+                <span>Subtotal:</span>
+                <span id="rcpt-subtotal">Rs. 0.00</span>
+              </div>
+              <div class="rcpt-total-row" id="rcpt-row-discount" style="display:none;">
+                <span>Discount:</span>
+                <span id="rcpt-discount">-Rs. 0.00</span>
+              </div>
+              <div class="rcpt-divider-solid"></div>
+              <div class="rcpt-total-row net-total">
+                <span>TOTAL PAYABLE:</span>
+                <span id="rcpt-total-payable">Rs. 0.00</span>
+              </div>
+              <div class="rcpt-total-row">
+                <span>Cash Received:</span>
+                <span id="rcpt-cash-paid">Rs. 0.00</span>
+              </div>
+              <div class="rcpt-total-row change">
+                <span id="rcpt-change-lbl">Change Returned:</span>
+                <span id="rcpt-change-val">Rs. 0.00</span>
+              </div>
+            </div>
+
+            <div class="rcpt-divider"></div>
+
+            <!-- Footer Details -->
+            <div class="rcpt-footer">
+              <div class="rcpt-counts" id="rcpt-counts-line">Items: 0 • Total Qty: 0</div>
+              <p class="rcpt-thankyou" id="rcpt-disp-thanks">*** THANK YOU FOR YOUR BUSINESS! ***</p>
+              <p class="rcpt-sinhala" id="rcpt-disp-sinhala">ඔබගේ පැමිණීමට සහ විශ්වාසයට ස්තූතියි!</p>
+              <div id="rcpt-wrap-terms">
+                <p class="rcpt-terms" id="rcpt-disp-terms-1">Exchangeable within 7 days with original receipt.</p>
+                <p class="rcpt-terms" id="rcpt-disp-terms-2">Electronic &amp; sound repairs carry service warranty.</p>
+              </div>
+              
+              <!-- Aesthetic Barcode -->
+              <div class="rcpt-barcode" id="rcpt-wrap-barcode">
+                <div class="barcode-lines"></div>
+                <div class="barcode-digits" id="rcpt-barcode-digits">RE-RCP-20261118-001</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer receipt-modal-footer">
+        <button type="button" class="btn btn-outline btn-sm" onclick="closePosReceiptModal()">✕ Close</button>
+        <button type="button" class="btn btn-whatsapp btn-sm" onclick="sendReceiptToWhatsappPdf()">
+          <svg width="14" height="14" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.007c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86.174.086.275.072.376-.044.101-.116.433-.506.549-.68.116-.173.231-.145.39-.086s1.011.477 1.184.564.289.13.332.202c.043.073.043.419-.101.824z"/></svg>
+          <span>WhatsApp PDF</span>
+        </button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="resetPosForNewSale()">
+          <span>+ New Sale</span>
+        </button>
+        <button type="button" class="btn btn-success" id="btn-rcpt-print-direct" onclick="executeReceiptPrint()" style="font-weight:700; padding:8px 18px; font-size:13.5px;">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+          <span>Print Receipt Now</span>
+        </button>
       </div>
     </div>
   </div>

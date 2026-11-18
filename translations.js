@@ -28,7 +28,119 @@ const translations = {
     sendWhatsapp: "Share on WhatsApp",
     convertInvoice: "Convert to Invoice",
     convertQuotation: "Convert to Quotation",
-    
+
+    // Navigation Tabs
+    tabDashboard: "Dashboard",
+    tabInvoiceBuilder: "Invoice & Quotation",
+    tabStoreBilling: "Store Billing & POS",
+    tabInventory: "Items & Inventory",
+    tabHistory: "History & Records",
+
+    // Manual Service in Billing
+    manualServiceTitle: "⚡ Quick Manual Service Entry",
+    manualServiceSubtitle: "Add custom repairs, hire packages or labor charges directly to current bill",
+    manualServiceDesc: "Service / Repair Description",
+    manualServicePrice: "Service Fee (Rs.)",
+    addManualServiceBtn: "+ Add Service to Bill",
+
+    // Inventory Tab
+    invTitle: "Items & Services Inventory Catalog",
+    invSubtitle: "Manage your sound equipment, sales items, and repair service charges",
+    invTotalItems: "Total Products in Stock",
+    invTotalServices: "Total Services Offered",
+    invLowStock: "Low Stock Items",
+    invSearchPlaceholder: "Find any item, part or service by name...",
+    invColType: "Type",
+    invColName: "Item / Service Name",
+    invColPrice: "Price (Rs.)",
+    invColStock: "Stock Qty",
+    invColActions: "Actions",
+    invActionEdit: "Edit",
+    invActionDelete: "Delete",
+    invActionAddToBill: "+ Add to POS",
+
+    // Dashboard
+    dashWelcome: "Welcome to Recital Electronic",
+    dashSubtitle: "Business Overview & Quick Billing Terminal",
+    dashTodaySales: "Today's Revenue",
+    dashMonthSales: "This Month's Sales",
+    dashPendingBalances: "Pending Balances to Collect",
+    dashTotalDocs: "Total Documents Created",
+    dashQuickActions: "Quick Actions",
+    dashNewInvoiceBtn: "Create Invoice",
+    dashNewQuotationBtn: "Create Quotation",
+    dashQuickBillBtn: "Open Store POS",
+    dashRecentDocs: "Recent Documents & Receipts",
+    dashPendingAlert: "Pending Payments Alert",
+    dashNoPending: "All customer payments are settled! No pending dues.",
+    dashRemindWA: "Send WhatsApp Reminder",
+    dashViewAll: "View All Documents",
+
+    // New Navigation Tabs
+    navRepairs: "Repair Job Cards",
+    navHire: "Sound Hire & Events",
+    navReports: "Reports & Z-Close",
+
+    // Repair Job Cards System
+    repairsTitle: "Repair & Service Job Cards",
+    repairsSubtitle: "Equipment intake, customer phone search, serial tags, spare parts, and pickup notifications",
+    btnNewJobCard: "New Repair Job Card",
+    searchRepairsPlaceholder: "Search by Customer Phone, Job ID (#RE-JOB-...), or Item Serial / Tag ID...",
+    jobFilterAll: "All Jobs",
+    jobFilterReceived: "Received",
+    jobFilterDiagnosing: "Diagnosing",
+    jobFilterParts: "Awaiting Parts",
+    jobFilterReady: "Ready for Pickup",
+    jobFilterCompleted: "Completed & Settled",
+    statActiveJobs: "Active Repair Jobs",
+    statAwaitingParts: "Awaiting Parts",
+    statReadyPickup: "Ready for Pickup",
+    statCompletedJobs: "Completed This Month",
+
+    // Sound Hire & Event Bookings
+    hireTitle: "Sound System Hire & Event Bookings",
+    hireSubtitle: "Schedule sound packages, DJ setups, venue bookings, advances, and gear checklists",
+    btnNewHireBooking: "Book Sound Hire / Event",
+    searchHirePlaceholder: "Search by Customer, Phone, Venue, or Booking #...",
+    hireStatUpcoming: "Upcoming Events",
+    hireStatAdvances: "Advances Collected",
+    hireStatPending: "Pending Event Balances",
+    hireStatTotalRev: "Total Hire Revenue",
+
+    // Reports & Daily Z-Report
+    reportsTitle: "Reports, Profit & Loss & Daily Cash Register Closing",
+    reportsSubtitle: "Cash drawer reconciliation, Cost of Goods Sold (COGS), profit margins, and CSV export",
+    btnOpenZReport: "🧾 Daily Z-Report Closing",
+    btnExportSales: "📥 Export Sales (CSV)",
+    btnExportInventory: "📥 Export Inventory (CSV)",
+    repStatGrossSales: "Today's Gross Sales",
+    repStatEstCOGS: "Estimated COGS (Cost)",
+    repStatNetProfit: "Estimated Net Profit",
+    repStatCashInDrawer: "Cash In Drawer Today",
+
+    // Store Billing & POS
+    billingTitle: "Store Billing & Point of Sale",
+    billingSubtitle: "Fast billing for items sales, repair services, or both combined",
+    filterAll: "Both (Services + Items)",
+    filterServices: "Services Only",
+    filterItems: "Items Selling Only",
+    searchCatalog: "Search items, services, cables, repairs...",
+    addNewProductBtn: "+ Add Store Item / Service",
+    cartTitle: "Current Bill / Basket",
+    cartEmpty: "No items added to bill yet. Click items on the left to add.",
+    cartCheckoutInvoice: "Convert to Official Invoice",
+    cartCheckoutQuotation: "Convert to Quotation",
+    cartPrintReceipt: "Print Quick Receipt",
+    cartCustomerName: "Customer Name",
+    cartCustomerPhone: "Customer Phone (WhatsApp)",
+    cartDiscount: "Discount (Rs.)",
+    cartPaid: "Cash Paid (Rs.)",
+    cartChange: "Change / Balance Due",
+    categoryService: "Service",
+    categoryItem: "Item Selling",
+    inStock: "In Stock",
+    addToBill: "+ Add",
+
     // Business Details
     bizDetailsCard: "Business & Issuer Information",
     showBizHeaderToggle: "Show Business Details on Letterhead Header",
@@ -88,7 +200,7 @@ const translations = {
     accountName: "Account Name",
     branch: "Branch",
     paymentInstructions: "Please use the document number as reference for bank deposits.",
-    
+
     termsAndConditions: "Terms & Conditions / Warranty",
     termsPresetSelect: "Select Preset Terms:",
     customNotes: "Special Notes / Instructions",
@@ -178,6 +290,118 @@ const translations = {
     sendWhatsapp: "WhatsApp යවන්න",
     convertInvoice: "ඉන්වොයිසියක් බවට හරවන්න",
     convertQuotation: "මිල ගණන් කැඳවීමක් බවට හරවන්න",
+
+    // Navigation Tabs
+    tabDashboard: "මුල් පුවරුව (Dashboard)",
+    tabInvoiceBuilder: "ඉන්වොයිස් සහ මිල ගණන්",
+    tabStoreBilling: "විකුණුම් සහ සේවා බිල්පත් (Store Billing)",
+    tabInventory: "භාණ්ඩ සහ තොග (Inventory)",
+    tabHistory: "ඉතිහාසය සහ වාර්තා (Records)",
+
+    // Manual Service in Billing
+    manualServiceTitle: "⚡ ක්ෂණික සේවා ගාස්තු එක්කිරීම",
+    manualServiceSubtitle: "අලුත්වැඩියා, කුලී හෝ ශ්‍රම ගාස්තු සෘජුවම බිල්පතට එකතු කරන්න",
+    manualServiceDesc: "සේවා / අලුත්වැඩියා විස්තරය",
+    manualServicePrice: "සේවා ගාස්තුව (රු.)",
+    addManualServiceBtn: "+ සේවාව බිල්පතට එක්කරන්න",
+
+    // Inventory Tab
+    invTitle: "භාණ්ඩ සහ සේවා නාමාවලිය (Catalog & Inventory)",
+    invSubtitle: "ශබ්ද උපකරණ, විකිණීමේ අමතර කොටස් සහ අලුත්වැඩියා සේවා ගාස්තු කළමනාකරණය",
+    invTotalItems: "තොගයේ ඇති මුළු භාණ්ඩ",
+    invTotalServices: "ලබාදෙන මුළු සේවා ගණන",
+    invLowStock: "අඩු තොග භාණ්ඩ (Low Stock)",
+    invSearchPlaceholder: "නම මගින් ඕනෑම භාණ්ඩයක්, කොටසක් හෝ සේවාවක් සොයන්න...",
+    invColType: "වර්ගය",
+    invColName: "භාණ්ඩයේ / සේවාවේ නම",
+    invColPrice: "මිල (රු.)",
+    invColStock: "තොග ප්‍රමාණය",
+    invColActions: "ක්‍රියා",
+    invActionEdit: "සංස්කරණය",
+    invActionDelete: "ඉවත් කරන්න",
+    invActionAddToBill: "+ බිලට එක්කරන්න",
+
+    // Dashboard
+    dashWelcome: "Recital Electronic ව්‍යාපාරික පුවරුව",
+    dashSubtitle: "දෛනික ආදායම්, ඉතිරි ගෙවීම් සහ ඉක්මන් බිල්පත් පද්ධතිය",
+    dashTodaySales: "අද දවසේ ආදායම",
+    dashMonthSales: "මෙම මාසයේ ආදායම",
+    dashPendingBalances: "පාරිභෝගිකයින්ගෙන් අයවීමට ඇති මුදල්",
+    dashTotalDocs: "සකස් කළ මුළු ලේඛන ගණන",
+    dashQuickActions: "ඉක්මන් ක්‍රියාමාර්ග",
+    dashNewInvoiceBtn: "නව ඉන්වොයිසියක්",
+    dashNewQuotationBtn: "නව මිල ගණන් කැඳවීමක්",
+    dashQuickBillBtn: "Store POS බිල්පත",
+    dashRecentDocs: "නවතම ලේඛන සහ රිසිට්පත්",
+    dashPendingAlert: "අයවීමට ඇති මුදල් පිළිබඳ දැනුම්දීම",
+    dashNoPending: "සියලු පාරිභෝගික ගෙවීම් බේරා අවසන් කර ඇත!",
+    dashRemindWA: "WhatsApp මගින් මතක් කරන්න",
+    dashViewAll: "සියලු ලේඛන බලන්න",
+
+    // New Navigation Tabs
+    navRepairs: "අලුත්වැඩියා කාඩ්පත්",
+    navHire: "ශබ්ද කුලියට දීම්",
+    navReports: "වාර්තා & Z-Close",
+
+    // Repair Job Cards System
+    repairsTitle: "ඉලෙක්ට්‍රොනික් සහ ශබ්ද උපකරණ අලුත්වැඩියා කාඩ්පත්",
+    repairsSubtitle: "උපකරණ භාරගැනීම, දුරකථන අංකයෙන් හෝ අයිතම ID මගින් සෙවීම, අමතර කොටස් සටහන් සහ පාරිභෝගික දැනුම්දීම්",
+    btnNewJobCard: "නව අලුත්වැඩියා කාඩ්පතක්",
+    searchRepairsPlaceholder: "පාරිභෝගික දුරකථන අංකය, Job ID (#RE-JOB-...), හෝ උපකරණයේ Serial/Tag ID මගින් සොයන්න...",
+    jobFilterAll: "සියලු අලුත්වැඩියා",
+    jobFilterReceived: "භාරගත් (Received)",
+    jobFilterDiagnosing: "පරීක්ෂා කරමින් (Diagnosing)",
+    jobFilterParts: "අමතර කොටස් ලැබෙන තුරු (Parts)",
+    jobFilterReady: "භාරදීමට සූදානම් (Ready)",
+    jobFilterCompleted: "අවසන් කර භාරදුන් (Completed)",
+    statActiveJobs: "ක්‍රියාකාරී අලුත්වැඩියා",
+    statAwaitingParts: "අමතර කොටස් අවශ්‍ය",
+    statReadyPickup: "භාරදීමට සූදානම්",
+    statCompletedJobs: "මෙම මස නිමකළ",
+
+    // Sound Hire & Event Bookings
+    hireTitle: "ශබ්ද විකාශන යන්ත්‍ර කුලියට දීම් සහ වෙන්කිරීම්",
+    hireSubtitle: "සංගීත ප්‍රසංග, විවාහ උත්සව සහ උත්සව ශබ්ද පරිපාලන උපකරණ කාලසටහන සහ අත්තිකාරම්",
+    btnNewHireBooking: "නව ශබ්ද කුලියට දීමක්",
+    searchHirePlaceholder: "පාරිභෝගික නම, දුරකථනය, ස්ථානය හෝ වෙන්කිරීම් # මගින් සොයන්න...",
+    hireStatUpcoming: "ඉදිරි උත්සව",
+    hireStatAdvances: "ලද අත්තිකාරම් මුදල්",
+    hireStatPending: "අයවීමට ඇති මුදල්",
+    hireStatTotalRev: "මුළු කුලී ආදායම",
+
+    // Reports & Daily Z-Report
+    reportsTitle: "ව්‍යාපාරික වාර්තා, ලාභ අලාභ සහ දෛනික Z-වාර්තාව (Daily Closing)",
+    reportsSubtitle: "මුදල් පෙට්ටියේ ශේෂයන්, භාණ්ඩ වියදම (COGS), ලාභ ප්‍රතිශත සහ CSV ඩවුන්ලෝඩ්",
+    btnOpenZReport: "🧾 දෛනික Z-වාර්තාව (Closing)",
+    btnExportSales: "📥 විකුණුම් වාර්තාව (CSV)",
+    btnExportInventory: "📥 තොග වාර්තාව (CSV)",
+    repStatGrossSales: "අද දින දළ ආදායම",
+    repStatEstCOGS: "භාණ්ඩ වියදම (COGS)",
+    repStatNetProfit: "ඇස්තමේන්තු ශුද්ධ ලාභය",
+    repStatCashInDrawer: "මුදල් පෙට්ටියේ ඇති මුදල",
+
+    // Store Billing & POS
+    billingTitle: "කඩේ බඩු විකිණීම සහ සේවා බිල්පත් කිරීම",
+    billingSubtitle: "භාණ්ඩ විකිණීම, අලුත්වැඩියා සේවා හෝ දෙකම එකවර ඉක්මනින් බිල් කරන්න",
+    filterAll: "දෙකම (සේවා + භාණ්ඩ)",
+    filterServices: "සේවා පමණි (Services Only)",
+    filterItems: "භාණ්ඩ අලෙවිය පමණි (Items Only)",
+    searchCatalog: "භාණ්ඩ, කේබල්, මයික් හෝ අලුත්වැඩියා සොයන්න...",
+    addNewProductBtn: "+ නව භාණ්ඩයක් / සේවාවක් එක්කරන්න",
+    cartTitle: "වත්මන් බිල්පත (Current Bill)",
+    cartEmpty: "තවමත් බිල්පතට කිසිවක් එක් කර නැත. වම්පසින් භාණ්ඩ තෝරන්න.",
+    cartCheckoutInvoice: "ඉන්වොයිසියක් බවට පත්කරන්න",
+    cartCheckoutQuotation: "මිල ගණන් ලේඛනයක් කරන්න",
+    cartPrintReceipt: "ඉක්මන් රිසිට්පත මුද්‍රණය",
+    cartCustomerName: "පාරිභෝගික නම",
+    cartCustomerPhone: "දුරකථන / WhatsApp අංකය",
+    cartDiscount: "වට්ටම (රු.)",
+    cartPaid: "ගෙවූ මුදල (රු.)",
+    cartChange: "ඉතිරි මුදල / අයවිය යුතු මුදල",
+    categoryService: "සේවාව",
+    categoryItem: "විකිණීමේ භාණ්ඩය",
+    inStock: "තොග ඇත",
+    addToBill: "+ එක්කරන්න",
 
     // Business Details
     bizDetailsCard: "ව්‍යාපාරික තොරතුරු (නිකුත් කරන්නා)",
@@ -310,9 +534,9 @@ const translations = {
  */
 function numberToEnglishWords(num) {
   if (num === null || num === undefined || isNaN(num) || num === 0) return "Zero Rupees Only";
-  
-  const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 
-             'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
+
+  const a = ['', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten',
+    'Eleven', 'Twelve', 'Thirteen', 'Fourteen', 'Fifteen', 'Sixteen', 'Seventeen', 'Eighteen', 'Nineteen'];
   const b = ['', '', 'Twenty', 'Thirty', 'Forty', 'Fifty', 'Sixty', 'Seventy', 'Eighty', 'Ninety'];
 
   function inWords(n) {
@@ -347,7 +571,7 @@ function numberToSinhalaWords(num) {
   const teens = ['දහය', 'එකොළහ', 'දොළහ', 'දහතුන', 'දාහතර', 'පහළොව', 'දහසය', 'දාහත', 'දහඅට', 'දහනවය'];
   const tensEnd = ['', '', 'විස්ස', 'තිහ', 'හතළිහ', 'පනහ', 'හැට', 'හැත්තෑව', 'අසූව', 'අනූව'];
   const tensMid = ['', '', 'විසි ', 'තිස් ', 'හතළිස් ', 'පනස් ', 'හැට ', 'හැත්තෑ ', 'අසූ ', 'අනූ '];
-  
+
   const thousandsPrefix = {
     1: 'එක්', 2: 'දෙ', 3: 'තුන්', 4: 'හාර', 5: 'පන්',
     6: 'හය', 7: 'හත්', 8: 'අට', 9: 'නව', 10: 'දස',
