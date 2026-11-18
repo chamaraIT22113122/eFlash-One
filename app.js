@@ -25,6 +25,7 @@ let state = {
   printLang: 'bilingual', // Document print language: bilingual
   docType: 'quotation', // 'quotation' or 'invoice'
   showBackground: true,
+  showBizHeader: false, // Hidden/removed from preview header by default as requested
   settings: loadSettings(),
   doc: createInitialDoc('quotation')
 };
@@ -194,6 +195,12 @@ function toggleTermPreset(idx, checked) {
 
 // Sync Editor Form Fields with State
 function syncFormWithState() {
+  document.getElementById('input-biz-name').value = state.settings.bizName || '';
+  document.getElementById('input-biz-address').value = state.settings.bizAddress || '';
+  document.getElementById('input-biz-phone').value = state.settings.bizPhone || '';
+  document.getElementById('input-biz-reg').value = state.settings.bizReg || '';
+  document.getElementById('input-show-biz-header').checked = !!state.showBizHeader;
+
   document.getElementById('input-doc-number').value = state.doc.number || '';
   document.getElementById('input-doc-date').value = state.doc.date || '';
   document.getElementById('input-doc-due-date').value = state.doc.dueDate || '';
@@ -323,6 +330,18 @@ function clearAllItems() {
   addNewItemRow();
 }
 
+// Update Business Fields from Form
+function updateBizField(field, value) {
+  state.settings[field] = value;
+  persistSettings(state.settings);
+  updateLivePreview();
+}
+
+function toggleBizHeaderDisplay(checked) {
+  state.showBizHeader = checked;
+  updateLivePreview();
+}
+
 // Update Document Fields
 function updateDocField(field, value) {
   state.doc[field] = value;
@@ -431,7 +450,11 @@ function updateLivePreview() {
   document.getElementById('ed-grandtotal-val').textContent = formatCurrency(grandTotal);
   document.getElementById('ed-balance-val').textContent = formatCurrency(balanceDue);
 
-  // 3. Update Preview Company Details
+  // 3. Update Preview Company Details & Visibility
+  const headerBlock = document.getElementById('prev-biz-header-block');
+  if (headerBlock) {
+    headerBlock.style.display = state.showBizHeader ? 'block' : 'none';
+  }
   document.getElementById('prev-biz-name').textContent = state.settings.bizName;
   document.getElementById('prev-biz-address').textContent = state.settings.bizAddress;
   document.getElementById('prev-biz-phone').textContent = state.settings.bizPhone;
@@ -439,6 +462,8 @@ function updateLivePreview() {
   document.getElementById('prev-doc-date').textContent = formatDisplayDate(state.doc.date);
 
   // 4. Update Document Meta
+  const dateMeta = document.getElementById('prev-doc-date-meta');
+  if (dateMeta) dateMeta.textContent = formatDisplayDate(state.doc.date);
   document.getElementById('prev-doc-number').textContent = state.doc.number || '---';
   document.getElementById('prev-doc-due').textContent = formatDisplayDate(state.doc.dueDate);
   document.getElementById('prev-doc-status').textContent = state.doc.status || 'Draft';
@@ -544,6 +569,8 @@ function updatePreviewLabelsByPrintLang() {
 
   document.getElementById('lbl-prev-bill-to').textContent = isBi ? 'CUSTOMER DETAILS / බිල්පත ලබන්නා' : (isSi ? 'පාරිභෝගික විස්තර' : 'CUSTOMER DETAILS');
   document.getElementById('lbl-prev-doc-details').textContent = isBi ? 'DOCUMENT DETAILS / ලේඛන තොරතුරු' : (isSi ? 'ලේඛන තොරතුරු' : 'DOCUMENT DETAILS');
+  const lblDateMeta = document.getElementById('lbl-prev-date-meta');
+  if (lblDateMeta) lblDateMeta.textContent = isSi ? 'දිනය:' : 'Date:';
   document.getElementById('lbl-prev-no').textContent = isSi ? 'අංකය:' : 'Number:';
   document.getElementById('lbl-prev-validity').textContent = state.docType === 'invoice' ? (isSi ? 'ගෙවිය යුතු දිනය:' : 'Payment Due Date:') : (isSi ? 'වලංගු කාලය:' : 'Valid Until:');
   document.getElementById('lbl-prev-status').textContent = isSi ? 'තත්වය:' : 'Status:';
@@ -597,6 +624,20 @@ function applyLanguage(lang) {
   document.getElementById('ui-mode-quotation').textContent = lang === 'si' ? 'මිල ගණන් (Quotation)' : 'Quotation';
   document.getElementById('ui-mode-invoice').textContent = lang === 'si' ? 'ඉන්වොයිසිය (Invoice)' : 'Invoice';
   document.getElementById('ui-btn-convert').textContent = state.docType === 'quotation' ? t.convertInvoice : t.convertQuotation;
+
+  // Card 0: Business Info
+  const cardBiz = document.getElementById('ui-card-biz-info');
+  if (cardBiz) cardBiz.textContent = t.bizDetailsCard;
+  const lblBizName = document.getElementById('ui-lbl-biz-name');
+  if (lblBizName) lblBizName.textContent = t.businessName;
+  const lblBizAddr = document.getElementById('ui-lbl-biz-address');
+  if (lblBizAddr) lblBizAddr.textContent = t.businessAddress;
+  const lblBizPhone = document.getElementById('ui-lbl-biz-phone');
+  if (lblBizPhone) lblBizPhone.textContent = t.businessPhone;
+  const lblBizReg = document.getElementById('ui-lbl-biz-reg');
+  if (lblBizReg) lblBizReg.textContent = t.businessRegNo;
+  const lblShowBiz = document.getElementById('ui-lbl-show-biz-header');
+  if (lblShowBiz) lblShowBiz.textContent = t.showBizHeaderToggle;
 
   // Card 1
   document.getElementById('ui-card-doc-info').textContent = t.docDetails;

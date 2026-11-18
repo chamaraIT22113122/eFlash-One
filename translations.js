@@ -29,6 +29,11 @@ const translations = {
     convertInvoice: "Convert to Invoice",
     convertQuotation: "Convert to Quotation",
     
+    // Business Details
+    bizDetailsCard: "Business & Issuer Information",
+    showBizHeaderToggle: "Show Business Details on Letterhead Header",
+    hideBizHeaderNotice: "Business details removed from header (ideal for pre-printed paper)",
+
     // Details
     docDetails: "Document Information",
     docNumber: "Document #",
@@ -173,6 +178,11 @@ const translations = {
     sendWhatsapp: "WhatsApp යවන්න",
     convertInvoice: "ඉන්වොයිසියක් බවට හරවන්න",
     convertQuotation: "මිල ගණන් කැඳවීමක් බවට හරවන්න",
+
+    // Business Details
+    bizDetailsCard: "ව්‍යාපාරික තොරතුරු (නිකුත් කරන්නා)",
+    showBizHeaderToggle: "ලෙටර්හෙඩ් ශීර්ෂයේ ව්‍යාපාර විස්තර පෙන්වන්න",
+    hideBizHeaderNotice: "ශීර්ෂයෙන් ව්‍යාපාර විස්තර ඉවත් කර ඇත (මුද්‍රිත ලෙටර්හෙඩ් සඳහා සුදුසුයි)",
 
     // Details
     docDetails: "ලේඛන තොරතුරු",
