@@ -2136,7 +2136,8 @@ function applyReceiptConfigToDOM(cfg) {
   setT('rcpt-disp-tagline', cfg.tagline);
   setH('rcpt-disp-address', (cfg.address || '').replace(/\n/g, '<br>'));
   setH('rcpt-disp-contact', `Tel: <strong>${cfg.phone}</strong> • Reg: ${cfg.reg}`);
-  setT('rcpt-disp-cashier', cfg.cashier);
+  const activeUser = window.authSystem ? window.authSystem.getCurrentUser() : null;
+  setT('rcpt-disp-cashier', activeUser ? activeUser.displayName : cfg.cashier);
   setT('rcpt-disp-thanks', cfg.thanksEn);
   setT('rcpt-disp-sinhala', cfg.thanksSi);
   setT('rcpt-disp-terms-1', cfg.terms1);
@@ -2399,6 +2400,8 @@ function saveCurrentPosReceiptToHistory() {
     total: total,
     paid: paid,
     status: status,
+    cashier: window.authSystem ? window.authSystem.getCurrentUser().displayName : 'Admin',
+    createdBy: window.authSystem ? window.authSystem.getCurrentUser().displayName : 'Admin',
     inventoryDeducted: !!isPosCartDeducted
   };
 
