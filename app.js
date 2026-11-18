@@ -1261,6 +1261,10 @@ function loadSavedDoc(id) {
 }
 
 function deleteSavedDoc(id) {
+  if (window.authSystem && !window.authSystem.can('delete_records')) {
+    alert('Permission Denied: Only Super Admin (Admin 1 - Chamara) can delete saved documents.');
+    return;
+  }
   if (confirm(state.currentLang === 'si' ? 'මෙම ලේඛනය මකා දැමීමට අවශ්‍ය බව සහතිකද?' : 'Are you sure you want to delete this document?')) {
     let history = getSavedDocsHistory();
     history = history.filter(d => d.id !== id);
@@ -1331,6 +1335,10 @@ function closeSettingsModal() {
 }
 
 function saveSettingsForm() {
+  if (window.authSystem && !window.authSystem.can('system_settings')) {
+    alert('Permission Denied: System and Business profile settings can only be modified by Super Admin (Admin 1 - Chamara).');
+    return;
+  }
   const newSettings = {
     bizName: document.getElementById('set-biz-name').value.trim() || DEFAULT_SETTINGS.bizName,
     bizAddress: document.getElementById('set-biz-address').value.trim() || DEFAULT_SETTINGS.bizAddress,
@@ -3048,6 +3056,10 @@ function shareRecordToWhatsappPdf(id) {
 }
 
 function deleteHistoryRecord(id) {
+  if (window.authSystem && !window.authSystem.can('delete_records')) {
+    alert('Permission Denied: Only Super Admin (Admin 1 - Chamara) can delete permanent records.');
+    return;
+  }
   if (confirm(state.currentLang === 'si' ? 'මෙම ලේඛනය සම්පූර්ණයෙන්ම මකා දැමීමට අවශ්‍ය බව සහතිකද?' : 'Are you sure you want to permanently delete this record?')) {
     let history = getSavedDocsHistory();
     history = history.filter(d => d.id !== id);
@@ -3348,6 +3360,10 @@ function openEditStoreItemModal(id) {
 }
 
 function deleteStoreItem(id) {
+  if (window.authSystem && !window.authSystem.can('delete_records')) {
+    alert('Permission Denied: Only Super Admin (Admin 1 - Chamara) can delete catalog inventory items.');
+    return;
+  }
   const item = storeCatalog.find(x => x.id === id);
   if (!item) return;
 
@@ -3688,6 +3704,10 @@ function editJobCard(id) {
 }
 
 function deleteJobCard(id) {
+  if (window.authSystem && !window.authSystem.can('delete_records')) {
+    alert('Permission Denied: Only Super Admin (Admin 1 - Chamara) can delete repair job cards.');
+    return;
+  }
   const job = repairJobs.find(j => j.id === id);
   if (!job) return;
 
@@ -4202,6 +4222,10 @@ function editHireBooking(id) {
 }
 
 function deleteHireBooking(id) {
+  if (window.authSystem && !window.authSystem.can('delete_records')) {
+    alert('Permission Denied: Only Super Admin (Admin 1 - Chamara) can delete event bookings.');
+    return;
+  }
   const booking = hireBookings.find(b => b.id === id);
   if (!booking) return;
 
