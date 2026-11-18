@@ -84,12 +84,12 @@
         if (saved) {
           const parsed = JSON.parse(saved);
           for (const u of parsed) {
-            // Auto-upgrade legacy names
-            if (u.id === 'admin1' && (u.displayName.includes('Chamara') || !u.displayName)) {
+            // Ensure standard titles
+            if (u.id === 'admin1' && u.displayName !== 'Main Admin') {
               u.displayName = 'Main Admin';
               u.roleLabel = 'Main Administrator';
             }
-            if (u.id === 'admin2' && (u.displayName.includes('Father') || !u.displayName)) {
+            if (u.id === 'admin2' && u.displayName !== 'Co-Admin') {
               u.displayName = 'Co-Admin';
               u.roleLabel = 'Co-Administrator';
             }

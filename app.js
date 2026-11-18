@@ -554,8 +554,12 @@ function setDocType(type) {
   const btnQ = document.getElementById('btn-mode-quotation');
   const btnI = document.getElementById('btn-mode-invoice');
   const btnConvert = document.getElementById('ui-btn-convert');
+  const btnConvertToInv = document.getElementById('btn-convert-to-invoice');
   const heading = document.getElementById('prev-heading-title');
   const tag = document.getElementById('preview-mode-tag');
+  const dueLabel = document.getElementById('ui-lbl-doc-due-date');
+  const prevDueLabel = document.getElementById('lbl-prev-validity');
+  const statusSelect = document.getElementById('input-doc-status');
 
   if (type === 'quotation') {
     btnQ.classList.add('active');
@@ -564,6 +568,21 @@ function setDocType(type) {
     heading.className = 'doc-heading-title quotation';
     tag.textContent = 'QUOTATION PREVIEW';
     if (btnConvert) btnConvert.textContent = state.currentLang === 'si' ? 'ඉන්වොයිසියක් බවට හරවන්න' : 'Convert to Invoice';
+    if (btnConvertToInv) btnConvertToInv.style.display = 'inline-flex';
+    if (dueLabel) dueLabel.textContent = state.currentLang === 'si' ? 'වලංගු කාලය (Valid Until)' : 'Valid Until (Date)';
+    if (prevDueLabel) prevDueLabel.textContent = state.currentLang === 'si' ? 'වලංගු කාලය:' : 'Valid Until:';
+
+    // Populate Quotation statuses
+    if (statusSelect) {
+      statusSelect.innerHTML = `
+        <option value="Draft">Draft (කටුසටහන)</option>
+        <option value="Sent">Sent (යවන ලදී)</option>
+        <option value="Accepted">Accepted (එකඟ විය)</option>
+        <option value="Rejected">Rejected (ප්‍රතික්ෂේපිත)</option>
+        <option value="Expired">Expired (කල් ඉකුත් වූ)</option>
+      `;
+      statusSelect.value = state.doc.status || 'Draft';
+    }
   } else {
     btnI.classList.add('active');
     btnQ.classList.remove('active');
@@ -571,6 +590,21 @@ function setDocType(type) {
     heading.className = 'doc-heading-title invoice';
     tag.textContent = 'INVOICE PREVIEW';
     if (btnConvert) btnConvert.textContent = state.currentLang === 'si' ? 'මිල ගණන් කැඳවීමක් බවට හරවන්න' : 'Convert to Quotation';
+    if (btnConvertToInv) btnConvertToInv.style.display = 'none';
+    if (dueLabel) dueLabel.textContent = state.currentLang === 'si' ? 'ගෙවිය යුතු දිනය (Due Date)' : 'Due Date';
+    if (prevDueLabel) prevDueLabel.textContent = state.currentLang === 'si' ? 'ගෙවිය යුතු දිනය:' : 'Due Date:';
+
+    // Populate Invoice statuses
+    if (statusSelect) {
+      statusSelect.innerHTML = `
+        <option value="Draft">Draft (කටුසටහන)</option>
+        <option value="Issued">Issued (නිකුත් කළ / Unpaid)</option>
+        <option value="Partially Paid">Partially Paid (කොටසක් ගෙවා ඇත)</option>
+        <option value="Paid">Paid (සම්පූර්ණ ගෙවා ඇත)</option>
+        <option value="Void">Void (අවලංගුයි - Cancelled)</option>
+      `;
+      statusSelect.value = state.doc.status || 'Issued';
+    }
   }
 
   // Update doc number prefix if it matches previous default
@@ -590,6 +624,174 @@ function toggleConvertType() {
 
 function toggleDocType() {
   toggleConvertType();
+}
+
+// ==========================================
+// Quotation to Invoice Lifecycle & Conversion
+// ==========================================
+
+function convertActiveQuotationToInvoice() {
+  if (state.docType !== 'quotation') return;
+
+  const quoteNumber = state.doc.number;
+  const quoteId = state.doc.id;
+
+  // 1. Get next sequential invoice number
+  const nextInvoiceNumber = getNextDocNumber('invoice');
+
+  // 2. Mark quote in saved history as Accepted & link convertedInvoiceNumber
+  let history = getSavedDocsHistory();
+  const existingQuote = history.find(d => d.id === quoteId || d.number === quoteNumber);
+  if (existingQuote) {
+    existingQuote.status = 'Accepted';
+    existingQuote.convertedInvoiceNumber = nextInvoiceNumber;
+    localStorage.setItem('recital_docs_history', JSON.stringify(history));
+    if (window.firebaseDB && window.firebaseDB.isInitialized && !window.firebaseDB.isSyncing) {
+      window.firebaseDB.saveItem('invoices', existingQuote.number || existingQuote.id, existingQuote);
+    }
+  }
+
+  // 3. Clone quote into new official Invoice
+  state.doc.id = 'inv_' + Date.now();
+  state.doc.number = nextInvoiceNumber;
+  state.doc.type = 'invoice';
+  state.doc.sourceQuotationNumber = quoteNumber;
+  state.doc.status = 'Issued';
+  state.doc.inventoryDeducted = false;
+
+  const today = new Date();
+  today.setDate(today.getDate() + 14);
+  state.doc.dueDate = formatDate(today);
+
+  // 4. Switch UI to Invoice mode and save
+  setDocType('invoice');
+  saveCurrentDoc(false);
+  updateLivePreview();
+
+  showToast(state.currentLang === 'si'
+    ? `✅ මිල ගණන් පත්‍රිකාව (${quoteNumber}) සාර්ථකව ඉන්වොයිසියක් (${nextInvoiceNumber}) බවට පත්කරන ලදී!`
+    : `✅ Quotation (${quoteNumber}) converted to Official Invoice (${nextInvoiceNumber})!`);
+}
+
+function restoreItemsToCatalog(itemsList) {
+  if (!itemsList || !Array.isArray(itemsList)) return;
+  let updated = false;
+  itemsList.forEach(item => {
+    const qty = Math.max(0, parseFloat(item.qty) || 1);
+    const target = storeCatalog.find(c => c.id === item.catalogId || c.id === item.id);
+    if (target && target.type === 'item') {
+      target.stock = (parseFloat(target.stock) || 0) + qty;
+      updated = true;
+    }
+  });
+  if (updated) {
+    persistStoreCatalog(storeCatalog);
+    if (typeof renderCatalogGrid === 'function') renderCatalogGrid();
+    if (typeof renderInventoryManagementTable === 'function') renderInventoryManagementTable();
+  }
+}
+
+function voidInvoiceRecord(id) {
+  if (window.authSystem && !window.authSystem.can('delete_records')) {
+    alert('Permission Denied: Only Main Admin can void financial records.');
+    return;
+  }
+  const isSi = (state.currentLang === 'si');
+  const confirmMsg = isSi
+    ? 'මෙම ඉන්වොයිසිය අවලංගු (VOID) කිරීමට ඔබට සහතිකද? අනුක්‍රමික අංකය සුරැකෙන අතර අඩු කරන ලද භාණ්ඩ තොග නැවත ගබඩාවට එකතු කෙරේ.'
+    : 'Are you sure you want to mark this invoice as VOID? The sequential number will be preserved for audit compliance and any deducted items will be restored to inventory.';
+
+  if (!confirm(confirmMsg)) return;
+
+  const history = getSavedDocsHistory();
+  const doc = history.find(d => d.id === id || d.number === id);
+  if (!doc) return;
+
+  if (doc.status === 'Void') {
+    showToast(isSi ? 'මෙම ලේඛනය දැනටමත් අවලංගු කර ඇත.' : 'This document is already marked as VOID.');
+    return;
+  }
+
+  // Restore inventory if stock was deducted
+  if (doc.inventoryDeducted && doc.items && Array.isArray(doc.items)) {
+    restoreItemsToCatalog(doc.items);
+    doc.inventoryDeducted = false;
+  }
+
+  doc.status = 'Void';
+  localStorage.setItem('recital_docs_history', JSON.stringify(history));
+
+  if (window.firebaseDB && window.firebaseDB.isInitialized && !window.firebaseDB.isSyncing) {
+    window.firebaseDB.saveItem('invoices', doc.number || doc.id, doc);
+  }
+
+  // If this doc is currently open in editor, update preview
+  if (state.doc && (state.doc.id === doc.id || state.doc.number === doc.number)) {
+    state.doc.status = 'Void';
+    const statusSelect = document.getElementById('input-doc-status');
+    if (statusSelect) statusSelect.value = 'Void';
+    updateLivePreview();
+  }
+
+  if (typeof renderHistoryView === 'function') renderHistoryView();
+  if (typeof updateDashboard === 'function') updateDashboard();
+
+  showToast(isSi
+    ? `🚫 ඉන්වොයිසිය (${doc.number || doc.id}) අවලංගු කරන ලදී (VOID). භාණ්ඩ තොග නැවත එක්කරන ලදී.`
+    : `🚫 Invoice (${doc.number || doc.id}) marked as VOID. Stock returned to inventory.`);
+}
+
+function convertQuotationFromHistory(id) {
+  const history = getSavedDocsHistory();
+  const quote = history.find(d => d.id === id || d.number === id);
+  if (!quote) return;
+
+  const quoteNumber = quote.number;
+  const nextInvoiceNumber = getNextDocNumber('invoice');
+
+  // Mark quote in saved history as Accepted & link convertedInvoiceNumber
+  quote.status = 'Accepted';
+  quote.convertedInvoiceNumber = nextInvoiceNumber;
+
+  // Clone quote into new official Invoice
+  const newInvoice = JSON.parse(JSON.stringify(quote));
+  newInvoice.id = 'inv_' + Date.now();
+  newInvoice.number = nextInvoiceNumber;
+  newInvoice.type = 'invoice';
+  newInvoice.status = 'Issued';
+  newInvoice.sourceQuotationNumber = quoteNumber;
+  newInvoice.inventoryDeducted = false;
+  newInvoice.date = getTodayDate();
+  newInvoice.dueDate = new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0];
+
+  // Deduct inventory items for invoice
+  if (newInvoice.items && newInvoice.items.length > 0) {
+    deductItemsFromCatalog(newInvoice.items, 'Invoice');
+    newInvoice.inventoryDeducted = true;
+  }
+
+  history.unshift(newInvoice);
+  localStorage.setItem('recital_docs_history', JSON.stringify(history));
+
+  if (window.firebaseDB && window.firebaseDB.isInitialized && !window.firebaseDB.isSyncing) {
+    window.firebaseDB.saveItem('invoices', quote.number || quote.id, quote);
+    window.firebaseDB.saveItem('invoices', newInvoice.number || newInvoice.id, newInvoice);
+  }
+
+  // Load into editor
+  state.doc = newInvoice;
+  state.docType = 'invoice';
+  setDocType('invoice');
+  syncFormWithState();
+  updateLivePreview();
+  switchMainTab('generator');
+
+  if (typeof renderHistoryView === 'function') renderHistoryView();
+  if (typeof updateDashboard === 'function') updateDashboard();
+
+  showToast(state.currentLang === 'si'
+    ? `✅ මිල ගණන් පත්‍රිකාව (${quoteNumber}) ඉන්වොයිසියක් (${nextInvoiceNumber}) බවට පත්කර සංස්කාරකයට පූරණය විය!`
+    : `✅ Quotation (${quoteNumber}) converted to Official Invoice (${nextInvoiceNumber})!`);
 }
 
 // ==========================================
@@ -651,6 +853,28 @@ function updateLivePreview() {
   document.getElementById('prev-doc-number').textContent = state.doc.number || '---';
   document.getElementById('prev-doc-due').textContent = formatDisplayDate(state.doc.dueDate);
   document.getElementById('prev-doc-status').textContent = state.doc.status || 'Draft';
+
+  // Reference Quote if converted
+  const quoteRow = document.getElementById('prev-source-quote-row');
+  const quoteNum = document.getElementById('prev-source-quote-num');
+  if (quoteRow && quoteNum) {
+    if (state.doc.sourceQuotationNumber) {
+      quoteRow.style.display = 'flex';
+      quoteNum.textContent = state.doc.sourceQuotationNumber;
+    } else {
+      quoteRow.style.display = 'none';
+    }
+  }
+
+  // VOID Watermark check
+  const pvPage = document.getElementById('invoice-preview');
+  if (pvPage) {
+    if (state.doc.status === 'Void') {
+      pvPage.classList.add('is-void');
+    } else {
+      pvPage.classList.remove('is-void');
+    }
+  }
 
   // 5. Update Customer Info
   const custName = state.doc.customer.name.trim();
@@ -716,15 +940,25 @@ function updateLivePreview() {
     }
   }
 
-  // 9. Payment Details
-  const elBankName = document.getElementById('pv-bank-name');
-  if (elBankName) elBankName.textContent = state.doc.payment.bankName || state.settings.bankName;
-  const elAccName = document.getElementById('pv-bank-acc-name') || document.getElementById('pv-acc-name');
-  if (elAccName) elAccName.textContent = state.doc.payment.accountName || state.settings.accountName;
-  const elAccNum = document.getElementById('pv-bank-acc-num') || document.getElementById('pv-acc-number');
-  if (elAccNum) elAccNum.textContent = state.doc.payment.accountNumber || state.settings.accountNumber;
-  const elBranch = document.getElementById('pv-bank-branch') || document.getElementById('pv-branch');
-  if (elBranch) elBranch.textContent = state.doc.payment.branch || state.settings.branch;
+  // 9. Payment Details vs Quotation Validity Notice
+  const paymentBox = document.getElementById('prev-payment-box');
+  if (paymentBox) {
+    if (state.docType === 'quotation') {
+      paymentBox.innerHTML = `
+        <h5 id="lbl-pv-bank" style="color:#0284c7;">QUOTATION VALIDITY / වලංගු කාලය</h5>
+        <p><strong>Validity:</strong> 14 Days from issue date</p>
+        <p style="font-size:10px; color:#64748b; line-height:1.4; margin-top:3px;">All prices quoted in LKR. Subject to equipment and parts availability at time of customer acceptance.</p>
+      `;
+    } else {
+      paymentBox.innerHTML = `
+        <h5 id="lbl-pv-bank">BANK PAYMENT DETAILS / බැංකු විස්තර</h5>
+        <p><strong>Bank:</strong> <span>${state.doc.payment.bankName || state.settings.bankName}</span></p>
+        <p><strong>Account Name:</strong> <span>${state.doc.payment.accountName || state.settings.accountName}</span></p>
+        <p><strong>Account No:</strong> <span>${state.doc.payment.accountNumber || state.settings.accountNumber}</span></p>
+        <p><strong>Branch:</strong> <span>${state.doc.payment.branch || state.settings.branch}</span></p>
+      `;
+    }
+  }
 
   // 10. Terms & Conditions
   const termsList = document.getElementById('pv-terms-list');
@@ -1127,9 +1361,9 @@ function createNewDoc() {
 
 function saveCurrentDoc(isSilent) {
   try {
-    // Deduct physical items from inventory on first save
-    if (!state.doc.inventoryDeducted && state.doc.items && state.doc.items.length > 0) {
-      const deducted = deductItemsFromCatalog(state.doc.items, state.docType === 'invoice' ? 'Invoice' : 'Quotation');
+    // STRICT BUSINESS RULE: Deduct physical items from inventory ONLY for Invoices, NEVER for Quotations!
+    if (state.docType === 'invoice' && !state.doc.inventoryDeducted && state.doc.items && state.doc.items.length > 0) {
+      const deducted = deductItemsFromCatalog(state.doc.items, 'Invoice');
       if (deducted.length > 0) {
         state.doc.inventoryDeducted = true;
         if (!isSilent) {
@@ -1137,6 +1371,22 @@ function saveCurrentDoc(isSilent) {
             ? `📦 භාණ්ඩ ${deducted.length} ක තොග ප්‍රමාණය අඩු කරන ලදී!`
             : `📦 Stock deducted for ${deducted.length} item(s)!`);
         }
+      }
+    }
+
+    // Quotation check: Check availability without deducting
+    if (state.docType === 'quotation' && !isSilent && state.doc.items) {
+      const lowItems = [];
+      state.doc.items.forEach(item => {
+        const cat = storeCatalog.find(c => c.id === item.catalogId || c.id === item.id);
+        if (cat && cat.type === 'item' && cat.stock < item.qty) {
+          lowItems.push(item.description);
+        }
+      });
+      if (lowItems.length > 0) {
+        showToast(state.currentLang === 'si'
+          ? `⚠️ අවවාදයයි: භාණ්ඩ ${lowItems.length} ක තොග ප්‍රමාණ ප්‍රමාණවත් නොවේ (මිල ගණන් මගින් තොග අඩු නොකෙරේ).`
+          : `⚠️ Note: ${lowItems.length} item(s) low in stock. (Quotes do not deduct inventory).`);
       }
     }
 
@@ -2920,9 +3170,27 @@ function renderHistoryView() {
     const dateStr = doc.date || '';
     const timeStr = doc.time ? ` <span style="color:#94a3b8; font-size:11px;">${doc.time}</span>` : '';
 
-    const statusBadge = (doc.status === 'Paid') 
-      ? `<span class="badge badge-success" style="font-size:11px;">Paid</span>`
-      : (doc.status === 'Draft' ? `<span class="badge" style="background:#e2e8f0; color:#475569; font-size:11px;">Draft</span>` : `<span class="badge badge-warning" style="font-size:11px;">${doc.status || 'Active'}</span>`);
+    let statusBadge = '';
+    const st = doc.status || 'Active';
+    if (st === 'Paid') {
+      statusBadge = `<span class="badge badge-success" style="font-size:11px;">Paid</span>`;
+    } else if (st === 'Partially Paid') {
+      statusBadge = `<span class="badge badge-warning" style="font-size:11px;">Partially Paid</span>`;
+    } else if (st === 'Draft') {
+      statusBadge = `<span class="badge badge-draft" style="font-size:11px;">Draft</span>`;
+    } else if (st === 'Sent') {
+      statusBadge = `<span class="badge badge-sent" style="font-size:11px;">Sent</span>`;
+    } else if (st === 'Accepted') {
+      statusBadge = `<span class="badge badge-accepted" style="font-size:11px;">Accepted</span>`;
+    } else if (st === 'Rejected') {
+      statusBadge = `<span class="badge badge-rejected" style="font-size:11px;">Rejected</span>`;
+    } else if (st === 'Expired') {
+      statusBadge = `<span class="badge badge-expired" style="font-size:11px;">Expired</span>`;
+    } else if (st === 'Void') {
+      statusBadge = `<span class="badge badge-void" style="font-size:11px;">VOID</span>`;
+    } else {
+      statusBadge = `<span class="badge badge-warning" style="font-size:11px;">${st}</span>`;
+    }
 
     tr.innerHTML = `
       <td><span class="${badgeClass}">${typeName}</span></td>
@@ -2936,6 +3204,14 @@ function renderHistoryView() {
       <td style="text-align:center;">${statusBadge}</td>
       <td style="text-align:center;">
         <div class="hist-action-group">
+          ${docType === 'quotation' ? `
+          <button type="button" class="btn btn-outline btn-sm" onclick="convertQuotationFromHistory('${doc.id}')" title="Convert to Official Invoice" style="color:#0284c7; border-color:#0284c7; background:#f0f9ff; font-weight:700;">
+            🔄 ${isSi ? 'ඉන්වොයිස්' : 'To Inv'}
+          </button>` : ''}
+          ${(docType === 'invoice' || docType === 'receipt') && st !== 'Void' ? `
+          <button type="button" class="btn btn-outline btn-sm" onclick="voidInvoiceRecord('${doc.id}')" title="Mark VOID (Safely cancel & restore stock)" style="color:#dc2626; border-color:#fca5a5; background:#fff1f2; font-weight:700;">
+            🚫 ${isSi ? 'අවලංගු' : 'Void'}
+          </button>` : ''}
           <button type="button" class="btn btn-outline btn-sm" onclick="editRecordFromHistory('${doc.id}')" title="Fix / Edit Details">
             ✏️ ${isSi ? 'හදන්න' : 'Fix / Edit'}
           </button>
@@ -3786,6 +4062,7 @@ function renderRepairsView() {
       '<div class="hist-action-group">' +
       '<button type="button" class="btn btn-outline btn-sm" onclick="openJobSlipModal(\'' + job.id + '\')" title="Print Equipment Intake Slip / Sticker">🏷️ ' + (isSi ? 'ස්ටිකරය' : 'Sticker') + '</button>' +
       '<button type="button" class="btn btn-outline btn-sm" onclick="sendJobStatusWhatsapp(\'' + job.id + '\')" title="Send WhatsApp Update">💬</button>' +
+      '<button type="button" class="btn btn-outline btn-sm" onclick="convertJobToQuotation(\'' + job.id + '\')" title="Generate Quotation for Customer Pre-Approval" style="color:#0284c7; border-color:#0284c7; background:#f0f9ff; font-weight:700;">📑 ' + (isSi ? 'මිල ගණන්' : 'Quote') + '</button>' +
       '<button type="button" class="btn btn-outline btn-sm" onclick="convertJobToInvoice(\'' + job.id + '\')" title="Convert to Official Invoice / POS Bill">🧾 ' + (isSi ? 'බිලට' : 'Bill') + '</button>' +
       '<button type="button" class="btn btn-outline btn-sm" onclick="editJobCard(\'' + job.id + '\')" title="Edit">✏️</button>' +
       '<button type="button" class="btn btn-danger-outline btn-sm" onclick="deleteJobCard(\'' + job.id + '\')" title="Delete">🗑️</button>' +
@@ -3950,6 +4227,57 @@ function convertJobToInvoice(id) {
   renderPosCart();
   switchMainTab('pos');
   showToast(state.currentLang === 'si' ? 'අලුත්වැඩියාව POS බිල්පතට එක්කරන ලදී!' : 'Repair service loaded into POS Bill!');
+}
+
+function convertJobToQuotation(id) {
+  const job = repairJobs.find(j => j.id === id);
+  if (!job) return;
+
+  state.doc.id = 'qt_' + Date.now();
+  state.doc.number = getNextDocNumber('quotation');
+  state.doc.type = 'quotation';
+  state.doc.status = 'Draft';
+  state.doc.date = getTodayDate();
+  state.doc.dueDate = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+
+  state.doc.customer.name = job.customerName || '';
+  state.doc.customer.phone = job.customerPhone || '';
+  state.doc.customer.address = '';
+  state.doc.customer.email = '';
+
+  const totalCost = job.estimatedCost || 0;
+  const laborCost = Math.round(totalCost * 0.6);
+  const partsCost = Math.max(0, totalCost - laborCost);
+
+  state.doc.items = [
+    {
+      id: 'rep-labor-' + job.id,
+      itemType: 'REPAIR_SERVICE',
+      description: 'Repair & Labor Service: ' + (job.deviceType || 'Device') + (job.brandModel ? ' ' + job.brandModel : '') + ' (Reported Fault: ' + (job.fault || 'Defect') + ')',
+      qty: 1,
+      unitPrice: laborCost,
+      amount: laborCost
+    },
+    {
+      id: 'rep-parts-' + job.id,
+      itemType: 'PRODUCT',
+      description: 'Estimated Replacement Electronic Components / Parts',
+      qty: 1,
+      unitPrice: partsCost,
+      amount: partsCost
+    }
+  ];
+
+  state.doc.discount = 0;
+  state.doc.delivery = 0;
+  state.doc.advance = 0;
+  state.doc.notes = 'Repair Ticket Reference: #' + job.jobId + (job.itemTag ? ' | Tag: ' + job.itemTag : '') + ' | Quotation estimate valid for 14 days subject to component availability upon customer approval.';
+
+  setDocType('quotation');
+  syncFormWithState();
+  updateLivePreview();
+  switchMainTab('generator');
+  showToast(state.currentLang === 'si' ? 'අලුත්වැඩියාව සඳහා මිල ගණන් පත්‍රිකාවක් සකස් කරන ලදී!' : 'Repair Quotation prepared in Generator for customer approval!');
 }
 
 // ==========================================
@@ -4306,6 +4634,7 @@ function renderHireView() {
       '<td style="text-align:center;">' +
       '<div class="hist-action-group">' +
       '<button type="button" class="btn btn-outline btn-sm" onclick="sendHireBookingWhatsapp(\'' + b.id + '\')" title="Send WhatsApp Booking Confirmation">💬 WA</button>' +
+      '<button type="button" class="btn btn-outline btn-sm" onclick="convertHireToQuotation(\'' + b.id + '\')" title="Generate Quotation for Customer" style="color:#0284c7; border-color:#0284c7; background:#f0f9ff; font-weight:700;">📑 ' + (isSi ? 'මිල ගණන්' : 'Quote') + '</button>' +
       '<button type="button" class="btn btn-outline btn-sm" onclick="convertHireToInvoice(\'' + b.id + '\')" title="Convert to Official Invoice">📄 ' + (isSi ? 'ඉන්වොයිස්' : 'Invoice') + '</button>' +
       '<button type="button" class="btn btn-outline btn-sm" onclick="editHireBooking(\'' + b.id + '\')" title="Edit">✏️</button>' +
       '<button type="button" class="btn btn-danger-outline btn-sm" onclick="deleteHireBooking(\'' + b.id + '\')" title="Delete">🗑️</button>' +
@@ -4377,6 +4706,43 @@ function convertHireToInvoice(id) {
   updateLivePreview();
   switchMainTab('generator');
   showToast(state.currentLang === 'si' ? 'වෙන්කිරීම ඉන්වොයිසියක් බවට පත් කරන ලදී!' : 'Booking loaded into official Invoice!');
+}
+
+function convertHireToQuotation(id) {
+  const b = hireBookings.find(x => x.id === id);
+  if (!b) return;
+
+  state.doc.id = 'qt_' + Date.now();
+  state.doc.number = getNextDocNumber('quotation');
+  state.doc.type = 'quotation';
+  state.doc.status = 'Draft';
+  state.doc.customer.name = b.customerName || '';
+  state.doc.customer.phone = b.customerPhone || '';
+  state.doc.customer.address = b.venue || '';
+  state.doc.date = formatDate(new Date());
+  state.doc.dueDate = new Date(Date.now() + 14 * 86400000).toISOString().split('T')[0];
+
+  state.doc.items = [
+    {
+      id: 'hire-' + b.id,
+      itemType: 'HIRE_RENTAL',
+      description: 'Sound System / Event Hire: ' + b.package + ' (Venue: ' + (b.venue || 'TBD') + ', Event Date: ' + (b.eventDate || 'TBD') + ')' + (b.checklist ? ' - Gear: ' + b.checklist : ''),
+      qty: 1,
+      unitPrice: b.totalAmount || 0,
+      amount: b.totalAmount || 0
+    }
+  ];
+
+  state.doc.advance = b.advancePaid || 0;
+  state.doc.discount = 0;
+  state.doc.delivery = 0;
+  state.doc.notes = 'Booking Reference: #' + b.bookingId + ' | Sound & lighting equipment hire quote. Advance deposit required upon confirmation.';
+
+  setDocType('quotation');
+  syncFormWithState();
+  updateLivePreview();
+  switchMainTab('generator');
+  showToast(state.currentLang === 'si' ? 'වෙන්කිරීම මිල ගණන් පත්‍රිකාවක් බවට පත් කරන ලදී!' : 'Sound Hire Quote prepared in Generator!');
 }
 
 // ==========================================

@@ -375,6 +375,10 @@
       </div>
 
       <div class="generator-quick-actions">
+        <button type="button" class="btn btn-success btn-sm" id="btn-convert-to-invoice" onclick="convertActiveQuotationToInvoice()" style="display:none; font-weight:700;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+          <span id="ui-btn-convert-action">🔄 Convert to Invoice</span>
+        </button>
         <button type="button" class="btn btn-outline btn-sm" onclick="createNewDoc()">
           <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"></path></svg>
           <span id="ui-btn-new-tab">+ New</span>
@@ -697,6 +701,7 @@
 
           <!-- Decorative Ribbon Background Graphics -->
           <div class="a4-background-layer" id="a4-bg-layer"></div>
+          <div class="void-watermark" id="pv-void-watermark">VOID / අවලංගුයි</div>
 
           <!-- Foreground Content -->
           <div class="a4-content">
@@ -742,6 +747,10 @@
                 <div class="meta-row">
                   <span id="lbl-prev-no">Number:</span>
                   <span id="prev-doc-number">RE-QT-2026-001</span>
+                </div>
+                <div class="meta-row" id="prev-source-quote-row" style="display:none;">
+                  <span style="font-weight:700; color:#0284c7;">Ref Quote:</span>
+                  <span id="prev-source-quote-num" style="color:#0284c7; font-weight:700;"></span>
                 </div>
                 <div class="meta-row" id="prev-due-row">
                   <span id="lbl-prev-validity">Valid Until:</span>

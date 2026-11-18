@@ -3863,3 +3863,95 @@ textarea {
 .user-mgmt-row:hover {
   border-color: #94a3b8;
 }
+
+
+/* =========================================================
+   UNIFIED INVOICE & QUOTATION LIFECYCLE & AUDIT STYLES
+   ========================================================= */
+
+/* Void Watermark for Audit Compliance */
+.void-watermark {
+  position: absolute;
+  top: 45%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-25deg);
+  font-size: 72px;
+  font-weight: 900;
+  color: rgba(220, 38, 38, 0.28);
+  border: 6px solid rgba(220, 38, 38, 0.35);
+  padding: 12px 36px;
+  border-radius: 16px;
+  pointer-events: none;
+  z-index: 50;
+  letter-spacing: 8px;
+  text-transform: uppercase;
+  display: none;
+  white-space: nowrap;
+}
+.a4-page.is-void .void-watermark {
+  display: block;
+}
+
+/* Document Conversion Reference Tag */
+.doc-ref-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+/* Status Badges */
+.badge-draft {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+.badge-sent {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+.badge-accepted {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+.badge-rejected {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+.badge-expired {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+.badge-void {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #f87171;
+  text-decoration: line-through;
+}
+
+/* Locked Accepted Quotation Alert */
+.quote-accepted-banner {
+  background: #ecfdf5;
+  border: 1.5px solid #10b981;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  color: #065f46;
+  font-size: 12.5px;
+  font-weight: 600;
+}
