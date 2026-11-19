@@ -93,10 +93,13 @@ git push -u origin main
 
 ---
 
+## 📱 Use on Mobile / Tablet (Father's Phone)
+1. Open the GitHub Pages URL in Google Chrome or Safari on your father's phone or tablet.
 ## 📱 Use on Mobile / Tablet Devices
 1. Open the GitHub Pages URL in Google Chrome or Safari on any smartphone or tablet.
 2. Tap the browser menu (three dots `⋮` on Chrome or Share `⎙` on Safari).
 3. Tap **Add to Home screen** (මුල් තිරයට එක් කරන්න).
+4. An app icon named **Recital Electronic** will appear on his phone screen. He can tap it anytime to generate invoices and send them to customers over WhatsApp in seconds!
 4. An app icon named **Recital Electronic** will appear on the device home screen for quick, offline-capable 1-tap access!
 
 ---

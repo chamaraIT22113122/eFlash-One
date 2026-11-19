@@ -3188,6 +3188,11 @@ textarea {
   color: #065f46;
   border-color: #a7f3d0;
 }
+.fb-status-pill.fb-status-syncing {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
 .fb-status-pill.fb-status-offline {
   background: #f8fafc;
   color: #64748b;
@@ -3209,6 +3214,11 @@ textarea {
   background: #10b981;
   box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
   animation: fbPulse 2s infinite;
+}
+.fb-status-dot.dot-syncing {
+  background: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.35);
+  animation: fbPulse 1s infinite;
 }
 .fb-status-dot.dot-offline {
   background: #94a3b8;

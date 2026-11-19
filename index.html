@@ -1940,15 +1940,19 @@
         </div>
         <div id="fb-sync-status-text" style="font-size:12px; color:#64748b; margin-bottom:8px;"></div>
 
-        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:15px; border-top:1px solid #e2e8f0; padding-top:15px;">
+        <div style="font-size:11.5px; color:#64748b; margin-top:12px; line-height:1.45;">
+          ⚡ <b>Auto-Sync Status:</b> Data is automatically saved and synchronized in real-time as you create invoices, bills, job cards, or sound bookings. Manual buttons below are optional for one-time full push/pull.
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; border-top:1px solid #e2e8f0; padding-top:14px;">
           <button type="button" class="btn btn-primary" onclick="testAndSaveFirebaseConfig()">
             <span>Connect &amp; Save</span>
           </button>
-          <button type="button" class="btn btn-success" id="btn-fb-upload-all" onclick="uploadLocalDataToFirebase()" style="display:none;">
-            <span>☁️ Sync All Local Data to Cloud</span>
+          <button type="button" class="btn btn-success" id="btn-fb-upload-all" onclick="uploadLocalDataToFirebase()" style="display:none;" title="Force push all local data to cloud">
+            <span>☁️ Push Local Data to Cloud</span>
           </button>
-          <button type="button" class="btn btn-outline" id="btn-fb-fetch-all" onclick="fetchCloudDataToLocal()" style="display:none;">
-            <span>⬇️ Restore from Cloud</span>
+          <button type="button" class="btn btn-outline" id="btn-fb-fetch-all" onclick="fetchCloudDataToLocal()" style="display:none;" title="Force pull all data from cloud">
+            <span>⬇️ Pull from Cloud</span>
           </button>
           <button type="button" class="btn btn-danger btn-sm" id="btn-fb-disconnect" onclick="disconnectFirebase()" style="display:none; margin-left:auto;">
             <span>Disconnect</span>

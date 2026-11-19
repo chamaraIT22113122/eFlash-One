@@ -36,6 +36,9 @@ function persistSettings(newSettings) {
     state.settings = Object.assign({}, state.settings, newSettings);
   }
   localStorage.setItem('recital_settings', JSON.stringify(newSettings));
+  if (window.firebaseDB && window.firebaseDB.isInitialized) {
+    window.firebaseDB.saveItem('settings', 'business_profile', newSettings);
+  }
 }
 
 // Generate Next Document Number
@@ -940,6 +943,15 @@ function updateLivePreview() {
     }
   }
 
+  // 9. Payment Details
+  const elBankName = document.getElementById('pv-bank-name');
+  if (elBankName) elBankName.textContent = state.doc.payment.bankName || state.settings.bankName;
+  const elAccName = document.getElementById('pv-bank-acc-name') || document.getElementById('pv-acc-name');
+  if (elAccName) elAccName.textContent = state.doc.payment.accountName || state.settings.accountName;
+  const elAccNum = document.getElementById('pv-bank-acc-num') || document.getElementById('pv-acc-number');
+  if (elAccNum) elAccNum.textContent = state.doc.payment.accountNumber || state.settings.accountNumber;
+  const elBranch = document.getElementById('pv-bank-branch') || document.getElementById('pv-branch');
+  if (elBranch) elBranch.textContent = state.doc.payment.branch || state.settings.branch;
   // 9. Payment Details vs Quotation Validity Notice
   const paymentBox = document.getElementById('prev-payment-box');
   if (paymentBox) {
@@ -1517,11 +1529,12 @@ function deleteSavedDoc(id) {
   }
   if (confirm(state.currentLang === 'si' ? 'මෙම ලේඛනය මකා දැමීමට අවශ්‍ය බව සහතිකද?' : 'Are you sure you want to delete this document?')) {
     let history = getSavedDocsHistory();
-    history = history.filter(d => d.id !== id);
+    const docToDelete = history.find(d => d.id === id || d.number === id);
+    history = history.filter(d => d.id !== id && d.number !== id);
     localStorage.setItem('recital_docs_history', JSON.stringify(history));
-    if (window.firebaseDB && window.firebaseDB.isInitialized && !window.firebaseDB.isSyncing) {
-      const docId = state.doc.number || state.doc.id || ('DOC-' + Date.now());
-      window.firebaseDB.saveItem('invoices', docId, state.doc);
+    if (window.firebaseDB && window.firebaseDB.isInitialized) {
+      if (docToDelete && docToDelete.number) window.firebaseDB.deleteItem('invoices', docToDelete.number);
+      window.firebaseDB.deleteItem('invoices', id);
     }
     renderHistoryList(document.getElementById('search-history-input').value);
     showToast('Deleted!');
@@ -2449,6 +2462,9 @@ function saveReceiptConfigPermanent() {
   };
 
   localStorage.setItem('recital_rcpt_cfg', JSON.stringify(cfg));
+  if (window.firebaseDB && window.firebaseDB.isInitialized) {
+    window.firebaseDB.saveItem('settings', 'thermal_receipt', cfg);
+  }
   applyReceiptConfigToDOM(cfg);
   toggleReceiptCustomizer();
   showToast(state.currentLang === 'si' ? 'රිසිට්පත් සැකසුම් ස්ථිරව සුරකින ලදී!' : 'Receipt settings saved permanently!');
@@ -2669,6 +2685,11 @@ function saveCurrentPosReceiptToHistory() {
     history.unshift(receiptRecord);
   }
   localStorage.setItem('recital_docs_history', JSON.stringify(history));
+
+  if (window.firebaseDB && window.firebaseDB.isInitialized) {
+    const recId = receiptRecord.number || receiptRecord.id || ('RCPT-' + Date.now());
+    window.firebaseDB.saveItem('invoices', recId, receiptRecord);
+  }
 }
 
 function executeReceiptPrint() {
@@ -3338,11 +3359,12 @@ function deleteHistoryRecord(id) {
   }
   if (confirm(state.currentLang === 'si' ? 'මෙම ලේඛනය සම්පූර්ණයෙන්ම මකා දැමීමට අවශ්‍ය බව සහතිකද?' : 'Are you sure you want to permanently delete this record?')) {
     let history = getSavedDocsHistory();
-    history = history.filter(d => d.id !== id);
+    const docToDelete = history.find(d => d.id === id || d.number === id);
+    history = history.filter(d => d.id !== id && d.number !== id);
     localStorage.setItem('recital_docs_history', JSON.stringify(history));
-    if (window.firebaseDB && window.firebaseDB.isInitialized && !window.firebaseDB.isSyncing) {
-      const docId = state.doc.number || state.doc.id || ('DOC-' + Date.now());
-      window.firebaseDB.saveItem('invoices', docId, state.doc);
+    if (window.firebaseDB && window.firebaseDB.isInitialized) {
+      if (docToDelete && docToDelete.number) window.firebaseDB.deleteItem('invoices', docToDelete.number);
+      window.firebaseDB.deleteItem('invoices', id);
     }
     renderHistoryView();
     updateDashboard();
@@ -3650,6 +3672,10 @@ function deleteStoreItem(id) {
 
   storeCatalog = storeCatalog.filter(x => x.id !== id);
   persistStoreCatalog(storeCatalog);
+  if (window.firebaseDB && window.firebaseDB.isInitialized) {
+    if (item.code) window.firebaseDB.deleteItem('inventory', item.code);
+    window.firebaseDB.deleteItem('inventory', item.id);
+  }
 
   renderInventoryView();
   renderPosCatalog();
@@ -3990,6 +4016,10 @@ function deleteJobCard(id) {
   if (confirm(state.currentLang === 'si' ? 'මෙම අලුත්වැඩියා කාඩ්පත (' + job.jobId + ') මකා දැමීමට අවශ්‍ය බව සහතිකද?' : 'Are you sure you want to delete job card ' + job.jobId + '?')) {
     repairJobs = repairJobs.filter(j => j.id !== id);
     persistRepairJobs(repairJobs);
+    if (window.firebaseDB && window.firebaseDB.isInitialized) {
+      if (job.jobId) window.firebaseDB.deleteItem('repair_jobs', job.jobId);
+      window.firebaseDB.deleteItem('repair_jobs', job.id);
+    }
     renderRepairsView();
     showToast(state.currentLang === 'si' ? 'කාඩ්පත මකා දමන ලදී!' : 'Job card deleted!');
   }
@@ -4560,6 +4590,10 @@ function deleteHireBooking(id) {
   if (confirm(state.currentLang === 'si' ? 'මෙම වෙන්කිරීම (' + booking.bookingId + ') මකා දැමීමට අවශ්‍ය බව සහතිකද?' : 'Are you sure you want to delete booking ' + booking.bookingId + '?')) {
     hireBookings = hireBookings.filter(b => b.id !== id);
     persistHireBookings(hireBookings);
+    if (window.firebaseDB && window.firebaseDB.isInitialized) {
+      if (booking.bookingId) window.firebaseDB.deleteItem('hire_bookings', booking.bookingId);
+      window.firebaseDB.deleteItem('hire_bookings', booking.id);
+    }
     renderHireView();
     showToast(state.currentLang === 'si' ? 'වෙන්කිරීම මකා දමන ලදී!' : 'Booking deleted!');
   }
@@ -5136,7 +5170,17 @@ function updateFirebaseModalUI() {
 
   const isConnected = window.firebaseDB && window.firebaseDB.isInitialized;
   if (isConnected) {
-    statusEl.innerHTML = '<span style="color:#059669;">🟢 Connected to Project: <b>' + (cfg && cfg.projectId ? cfg.projectId : 'Active') + '</b></span>';
+    statusEl.innerHTML = `
+      <div style="background:#ecfdf5; border:1px solid #a7f3d0; border-radius:8px; padding:10px 14px; margin-top:6px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:16px;">🟢</span>
+          <strong style="color:#065f46; font-size:13.5px;">Continuous Auto-Sync Active: ${cfg && cfg.projectId ? cfg.projectId : 'Connected'}</strong>
+        </div>
+        <div style="font-size:11.5px; color:#047857; margin-top:4px; line-height:1.4;">
+          All invoices, receipts, inventory stock, job cards, and sound hire bookings are automatically saved and synced across all your devices in real-time. Manual sync is NOT required!
+        </div>
+      </div>
+    `;
     if (btnUpload) btnUpload.style.display = 'inline-flex';
     if (btnFetch) btnFetch.style.display = 'inline-flex';
     if (btnDisconnect) btnDisconnect.style.display = 'inline-flex';
